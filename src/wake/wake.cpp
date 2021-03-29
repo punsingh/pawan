@@ -25,18 +25,7 @@ __wake::~__wake(){
 }
 
 void __wake::print(){
-	for(int i = 0; i<10; ++i){
-		for(int j = 0; j<3; ++j){
-			std::cout << "\t" << gsl_matrix_get(_position,i,j); 
-		}
-		std::cout << std::endl;
-	}
-	for(int i = 0; i<10; ++i){
-		for(int j = 0; j<3; ++j){
-			std::cout << "\t" << gsl_matrix_get(_vorticity,i,j); 
-		}
-		std::cout << std::endl;
-	}
-
+	DISP("_position",_position);
+	DISP("_vorticity",_vorticity);
 }
 
