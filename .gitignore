@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# YCM Project Config Files
+*.ycm_extra_conf.py
