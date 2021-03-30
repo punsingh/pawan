@@ -6,12 +6,14 @@
  */
 
 #include <iostream>
-#include <stdio.h>
+#include <iomanip> // Required for set precision
+//#include <stdio.h>
 
 #include "wake/wake.h"
 
 int main(int argc, char* argv[]){
 
+	std::cout << std::setprecision(16) << std::scientific;
 	std::cout << "PArticle Wake ANalysis" << std::endl;
 	__wake *W = new __wake();
 	W->print();
