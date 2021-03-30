@@ -1,6 +1,6 @@
 /*! PArticle Wake ANalysis
- * @file gsl_utils.h
- * @brief GNU Scientific Library utilities for PAWAN
+ * \file gsl_utils.h
+ * \brief GNU Scientific Library utilities for PAWAN
  *
  * @author Puneet Singh
  * @date 03/28/2021
@@ -15,7 +15,6 @@
 #include <string>
 #include <math.h>
 #include <gsl/gsl_math.h>
-#include <gsl/gsl_complex.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 
@@ -26,19 +25,11 @@
  *
  */
 
-/*! \fn DISP
- * \brief Print string and complex number
- * \param	s	String
- * \param	c	Complex number
- */
-inline void DISP(std::string s, const gsl_complex &c, std::ostream &os = std::cout){
-	os << "\t" << s << " = "<< GSL_REAL(c) << " +i " << GSL_IMAG(c) << std::endl;
-};
-
-/*! \fn DISP
+/*! \fn inline void DISP(std::string s, const gsl_vector *v, std::ostream &os = std::cout)
  * \brief Print string and long array of values
  * \param	s	String
- * \param	v	gsl vector
+ * \param 	v	gsl vector
+ * \param	os	Output stream
  */
 inline void DISP(std::string s, const gsl_vector *v, std::ostream &os = std::cout){
 	if(v->size==0){
@@ -52,11 +43,12 @@ inline void DISP(std::string s, const gsl_vector *v, std::ostream &os = std::cou
 	}
 };
 
-/*! \fn DISP
+/*! \fn inline void DISP(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout)
  * \brief Print string and a limited array of values
  * \param	s	String
  * \param	v	gsl vector
  * \param	n	int
+ * \param	os	Output stream
  */
 inline void DISP(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout){
 	int m = n<=v->size?n:v->size;
@@ -71,10 +63,11 @@ inline void DISP(std::string s, const gsl_vector *v, const int &n, std::ostream 
 	}
 };
 
-/*! \fn DISPT
+/*! \fn inline void DISPT(std::string s, const gsl_vector *v, std::ostream &os = std::cout)
  * \brief Print string and long array of values Transposed
  * \param	s	String
  * \param	v	gsl vector
+ * \param	os	Output stream
  */
 inline void DISPT(std::string s, const gsl_vector *v, std::ostream &os = std::cout){
 	if(v->size==0){
@@ -89,11 +82,12 @@ inline void DISPT(std::string s, const gsl_vector *v, std::ostream &os = std::co
 	}
 };
 
-/*! \fn DISPT
+/*! \fn inline void DISPT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout)
  * \brief Print string and limited array of values transposed
  * \param	s	String
  * \param	v	gsl vector
  * \param	n	int
+ * \param	os	Output stream
  */
 inline void DISPT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout){
 	int m = n<=v->size?n:v->size;
@@ -109,10 +103,11 @@ inline void DISPT(std::string s, const gsl_vector *v, const int &n, std::ostream
 	}
 };
 
-/*! \fn DISP
+/*! \fn inline void DISP(std::string s, const gsl_matrix *m, std::ostream &os = std::cout)
  * \brief Print string and matrix of values
  * \param	s	String
  * \param	m	gsl matrix
+ * \param	os	Output stream
  */
 inline void DISP(std::string s, const gsl_matrix *m, std::ostream &os = std::cout){
 	if(m->size1==0 && m->size2==0){
@@ -136,7 +131,7 @@ inline void DISP(std::string s, const gsl_matrix *m, std::ostream &os = std::cou
  *
  */
 
-/*! \fn get_gsl_vector
+/*! \fn inline void get_gsl_vector(const gsl_vector *x, double *A, const int &n)
  * \brief	Write gsl vector to double array
  * \param	x	gsl vector
  * \param	A	double array
@@ -148,7 +143,7 @@ inline void get_gsl_vector(const gsl_vector *x, double *A, const int &n){
 	}
 };
 
-/*! \fn get_gsl_vector
+/*! \fn inline void get_gsl_vector(const gsl_vector *x, double *A, const int &n, const int &offset)
  * \brief	Write gsl vector to double array
  * \param	x	gsl vector
  * \param	A	double array
@@ -161,7 +156,7 @@ inline void get_gsl_vector(const gsl_vector *x, double *A, const int &n, const i
 	}
 };
 
-/*! \fn set_gsl_vector
+/*! \fn inline void set_gsl_vector(const double *A, gsl_vector *x, const int &n)
  * \brief	Write double array to gsl vector
  * \param	A	double array
  * \param	x	gsl vector
@@ -173,7 +168,7 @@ inline void set_gsl_vector(const double *A, gsl_vector *x, const int &n){
 	}
 };
 
-/*! \fn set_gsl_vector
+/*! \fn inline void set_gsl_vector(const double *A, gsl_vector *x, const int &n, const int &offset)
  * \brief	Write gsl vector to double array
  * \param	A	double array
  * \param	x	gsl vector
@@ -186,16 +181,15 @@ inline void set_gsl_vector(const double *A, gsl_vector *x, const int &n, const i
 	}
 };
 
-/*! \fn zero
+/*! \fn inline void zero(gsl_vector *V)
  * \brief Set gsl vector to zeros
  * \param V gsl vector 
- * \param n length
  */
 inline void zero(gsl_vector *V){
 	gsl_vector_set_zero(V);
 };
 
-/*! \fn increment_gsl_vector
+/*! \fn inline void increment_gsl_vector(gsl_vector *x, const int &n, const double &e)
  * \brief	Increment gsl vector element
  * \param	x	gsl vector
  * \param	n	index
@@ -205,8 +199,7 @@ inline void increment_gsl_vector(gsl_vector *x, const int &n, const double &e){
 	gsl_vector_set(x,n,gsl_vector_get(x,n) + e);
 };
 
-/*
- * \fn cartesian2spherical
+/*! \fn inline void cartesian2spherical(gsl_vector *cartesian, double &r, double &theta, double &phi)
  * \brief Cartesian to Spherical coordinate conversion
  * \param cartesian	Coordinate
  * \param r	Radius
@@ -229,7 +222,7 @@ inline void cartesian2spherical(gsl_vector *cartesian, double &r, double &theta,
 	}
 }
 
-/*! \fn norm
+/*! \fn inline double norm(const gsl_vector *A, const gsl_vector *B)
  * \brief Distance
  * \param A vector 
  * \param B vector
@@ -243,7 +236,7 @@ inline double norm(const gsl_vector *A, const gsl_vector *B){
 	return sqrt(result);
 }
 
-/*! \fn cross
+/*! \fn inline void cross(gsl_vector *A, const gsl_vector *B, const gsl_vector *C)
  * \brief Vector cross product
  * \param A vector 
  * \param B vector
@@ -262,7 +255,7 @@ inline void cross(gsl_vector *A, const gsl_vector *B, const gsl_vector *C){
 	gsl_vector_set(A,2,Bx*Cy - By*Cx);
 }
 
-/*! \fn flip_sign
+/*! \fn inline void flip_sign(gsl_vector *A)
  * \brief Flip sign of vector
  * \param A vector
  */
@@ -278,7 +271,7 @@ inline void flip_sign(gsl_vector *A){
  *
  */
 
-/*! \fn get_gsl_matrix
+/*! \fn inline void get_gsl_matrix(const gsl_matrix *M, double *A, const int &n, const int &m)
  * \brief	Write gsl vector to double array
  * \param	M	gsl matrix
  * \param	A	double matrix
@@ -293,7 +286,7 @@ inline void get_gsl_matrix(const gsl_matrix *M, double *A, const int &n, const i
 	}
 };
 
-/*! \fn set_gsl_matrix
+/*! \fn inline void set_gsl_matrix(const double *A, gsl_matrix *M, const int &n, const int &m)
  * \brief	Write double matrix to gsl matrix
  * \param	A	double matrix
  * \param	M	gsl matrix

@@ -1,6 +1,6 @@
 /*! PArticle Wake ANalysis
- * @file gsl_complex_utils.h
- * @brief GNU Scientific Library Complex MAtrix/Vector utilities for PAWAN
+ * \file gsl_complex_utils.h
+ * \brief GNU Scientific Library Complex Matrix/Vector utilities for PAWAN
  *
  * @author Puneet Singh
  * @date 03/28/2021
@@ -11,12 +11,30 @@
 #define GSL_COMPLEX_UTILS_H_
 
 #include "gsl_utils.h"
+#include <gsl/gsl_complex.h>
 #include <gsl/gsl_complex_math.h>
 
-/*! \fn DISP
+/*
+ *
+ * PRINT OPERATIONS
+ *
+ */
+
+/*! \fn inline void DISP(std::string s, const gsl_complex &c, std::ostream &os = std::cout)
+ * \brief Print string and complex number
+ * \param	s	String
+ * \param	c	Complex number
+ * \param	os	Output stream
+ */
+inline void DISP(std::string s, const gsl_complex &c, std::ostream &os = std::cout){
+	os << "\t" << s << " = "<< GSL_REAL(c) << " +i " << GSL_IMAG(c) << std::endl;
+};
+
+/*! \fn inline void DISP(std::string s, const gsl_vector_complex *v, std::ostream &os = std::cout)
  * \brief Print string and long complex array of values
  * \param	s	String
  * \param	v	gsl complex vector
+ * \param	os	Output stream
  */
 inline void DISP(std::string s, const gsl_vector_complex *v, std::ostream &os = std::cout){
 	if(v->size==0){
@@ -31,13 +49,13 @@ inline void DISP(std::string s, const gsl_vector_complex *v, std::ostream &os = 
 	}
 };
 
-/*! \fn DISP
+/*! \fn inline void DISP(std::string s, const gsl_matrix_complex *m, std::ostream &os = std::cout)
  * \brief Print string and matrix of complex values
  * \param	s	String
- * \param	v	gsl vector
+ * \param	m	gsl matrix
+ * \param	os	Output stream
  */
-inline void DISP(std::string s, const gsl_matrix_complex *m, std::ostream &os = std::cout)
-{
+inline void DISP(std::string s, const gsl_matrix_complex *m, std::ostream &os = std::cout){
 	if(m->size1==0 && m->size2==0){
 		os << "\t" << s << " is empty."<< std::endl;
 	}
@@ -54,7 +72,13 @@ inline void DISP(std::string s, const gsl_matrix_complex *m, std::ostream &os = 
 	}
 };
 
-/*! \fn conjugate_gsl_vector
+/*
+ *
+ * VECTOR OPERATIONS
+ *
+ */
+
+/*! \fn inline void conjugate_gsl_vector(const gsl_vector_complex *V, gsl_vector_complex *A)
  * \brief	Find the conjugate of a gsl vector
  * \param	V	gsl vector
  * \param	A	output vector
@@ -66,10 +90,11 @@ inline void conjugate_gsl_vector(const gsl_vector_complex *V, gsl_vector_complex
 	}
 };
 
-/*! \fn cv_product
+/*! \fn inline void complex_vector_product(const gsl_complex &C, const double D[3], gsl_vector_complex *A)
  * \brief Complex number multiplied with Double vector
  * \param C complex number 
  * \param D double vector
+ * \param A output complex vector
  * Returns Z = complex vector
  */
 inline void complex_vector_product(const gsl_complex &C, const double D[3], gsl_vector_complex *A){
@@ -78,7 +103,7 @@ inline void complex_vector_product(const gsl_complex &C, const double D[3], gsl_
 	}
 }
 
-/*! \fn flip_sign
+/*! \fn inline void flip_sign(gsl_vector_complex *A)
  * \brief Flip sign of complex number vector
  * \param A complex number vector
  */
@@ -88,7 +113,7 @@ inline void flip_sign(gsl_vector_complex *A){
 	}
 }
 
-/*! \fn gsl_vector_complex_mul_real
+/*! \fn inline void gsl_vector_complex_mul_real(const double &r, gsl_vector_complex *A)
  * \brief Multiply complex vector with real number
  * \param r real number
  * \param A complex number vector
@@ -99,7 +124,7 @@ inline void gsl_vector_complex_mul_real(const double &r, gsl_vector_complex *A){
 	}
 }
 
-/*! \fn gsl_vector_complex_div_real
+/*! \fn inline void gsl_vector_complex_div_real(const double &r, gsl_vector_complex *A)
  * \brief Multiply complex vector with real number
  * \param r real number
  * \param A complex number vector
@@ -110,7 +135,7 @@ inline void gsl_vector_complex_div_real(const double &r, gsl_vector_complex *A){
 	}
 }
 
-/*! \fn gsl_real_to_complex_vector
+/*! \fn inline void gsl_real_to_complex_vector(gsl_vector *real, gsl_vector_complex *comp)
  * \brief Create complex vector from real vector
  * \param real Real number vector
  * \param comp Complex number vector
@@ -121,7 +146,7 @@ inline void gsl_real_to_complex_vector(gsl_vector *real, gsl_vector_complex *com
 	}
 }
 
-/*! \fn gsl_conjugate_vector
+/*! \fn inline void gsl_conjugate_vector(gsl_vector_complex *A, gsl_vector_complex *B)
  * \brief Conjugate complex vector
  * \param A conjugate complex number vector
  * \param B original complex number vector
