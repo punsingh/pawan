@@ -17,14 +17,36 @@
 class __wake{
 
 	private:
+		size_t _numParticles;
 		gsl_matrix *_position;
 		gsl_matrix *_vorticity;
+		gsl_vector *_radius;
+		gsl_vector *_volume;
+		gsl_vector *_birthstrength;
 
 	public:
-
+		//! Constructor
+		/*
+		 * Creates random particles
+		 */
 		__wake();
+		
+		//! Copy Constructor
+		/*
+		 * Copies particles
+		 */
+		__wake(const __wake &w);
+		
+		//! Destructor
+		/*
+		 * Creates random particles
+		 */
 		~__wake();
 
+		//! Print all wake particles
+		/*
+		 * Creates random particles
+		 */
 		virtual void print();
 
 };
