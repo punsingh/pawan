@@ -1,0 +1,377 @@
+.TH "src/utils/gsl_utils.h" 3 "Mon Mar 29 2021" "Version 1" "PArticle Wake ANalysis" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+src/utils/gsl_utils.h \- GNU Scientific Library utilities for PAWAN\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+\fC#include <iostream>\fP
+.br
+\fC#include <sstream>\fP
+.br
+\fC#include <string>\fP
+.br
+\fC#include <math\&.h>\fP
+.br
+\fC#include <gsl/gsl_math\&.h>\fP
+.br
+\fC#include <gsl/gsl_vector\&.h>\fP
+.br
+\fC#include <gsl/gsl_matrix\&.h>\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBDISP\fP (std::string s, const gsl_vector *v, std::ostream &os=std::cout)"
+.br
+.RI "Print string and long array of values\&. "
+.ti -1c
+.RI "void \fBDISP\fP (std::string s, const gsl_vector *v, const int &n, std::ostream &os=std::cout)"
+.br
+.RI "Print string and a limited array of values\&. "
+.ti -1c
+.RI "void \fBDISPT\fP (std::string s, const gsl_vector *v, std::ostream &os=std::cout)"
+.br
+.RI "Print string and long array of values Transposed\&. "
+.ti -1c
+.RI "void \fBDISPT\fP (std::string s, const gsl_vector *v, const int &n, std::ostream &os=std::cout)"
+.br
+.RI "Print string and limited array of values transposed\&. "
+.ti -1c
+.RI "void \fBDISP\fP (std::string s, const gsl_matrix *m, std::ostream &os=std::cout)"
+.br
+.RI "Print string and matrix of values\&. "
+.ti -1c
+.RI "void \fBget_gsl_vector\fP (const gsl_vector *x, double *A, const int &n)"
+.br
+.RI "Write gsl vector to double array\&. "
+.ti -1c
+.RI "void \fBget_gsl_vector\fP (const gsl_vector *x, double *A, const int &n, const int &offset)"
+.br
+.RI "Write gsl vector to double array\&. "
+.ti -1c
+.RI "void \fBset_gsl_vector\fP (const double *A, gsl_vector *x, const int &n)"
+.br
+.RI "Write double array to gsl vector\&. "
+.ti -1c
+.RI "void \fBset_gsl_vector\fP (const double *A, gsl_vector *x, const int &n, const int &offset)"
+.br
+.RI "Write gsl vector to double array\&. "
+.ti -1c
+.RI "void \fBzero\fP (gsl_vector *V)"
+.br
+.RI "Set gsl vector to zeros\&. "
+.ti -1c
+.RI "void \fBincrement_gsl_vector\fP (gsl_vector *x, const int &n, const double &e)"
+.br
+.RI "Increment gsl vector element\&. "
+.ti -1c
+.RI "void \fBcartesian2spherical\fP (gsl_vector *cartesian, double &r, double &theta, double &phi)"
+.br
+.RI "Cartesian to Spherical coordinate conversion\&. "
+.ti -1c
+.RI "double \fBnorm\fP (const gsl_vector *A, const gsl_vector *B)"
+.br
+.RI "Distance\&. "
+.ti -1c
+.RI "void \fBcross\fP (gsl_vector *A, const gsl_vector *B, const gsl_vector *C)"
+.br
+.RI "Vector cross product\&. "
+.ti -1c
+.RI "void \fBflip_sign\fP (gsl_vector *A)"
+.br
+.RI "Flip sign of vector\&. "
+.ti -1c
+.RI "void \fBget_gsl_matrix\fP (const gsl_matrix *M, double *A, const int &n, const int &m)"
+.br
+.RI "Write gsl vector to double array\&. "
+.ti -1c
+.RI "void \fBset_gsl_matrix\fP (const double *A, gsl_matrix *M, const int &n, const int &m)"
+.br
+.RI "Write double matrix to gsl matrix\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+GNU Scientific Library utilities for PAWAN\&. 
+
+PArticle Wake ANalysis
+.PP
+\fBAuthor\fP
+.RS 4
+Puneet Singh 
+.RE
+.PP
+\fBDate\fP
+.RS 4
+03/28/2021 
+.RE
+.PP
+
+.SH "Function Documentation"
+.PP 
+.SS "void cartesian2spherical (gsl_vector * cartesian, double & r, double & theta, double & phi)\fC [inline]\fP"
+
+.PP
+Cartesian to Spherical coordinate conversion\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIcartesian\fP Coordinate 
+.br
+\fIr\fP Radius 
+.br
+\fItheta\fP Azimuth 
+.br
+\fIphi\fP Latitude 
+.RE
+.PP
+
+.SS "void cross (gsl_vector * A, const gsl_vector * B, const gsl_vector * C)\fC [inline]\fP"
+
+.PP
+Vector cross product\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIA\fP vector 
+.br
+\fIB\fP vector 
+.br
+\fIC\fP vector Returns A = B x C 
+.RE
+.PP
+
+.SS "void DISP (std::string s, const gsl_matrix * m, std::ostream & os = \fCstd::cout\fP)\fC [inline]\fP"
+
+.PP
+Print string and matrix of values\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIs\fP String 
+.br
+\fIm\fP gsl matrix 
+.br
+\fIos\fP Output stream 
+.RE
+.PP
+
+.SS "void DISP (std::string s, const gsl_vector * v, const int & n, std::ostream & os = \fCstd::cout\fP)\fC [inline]\fP"
+
+.PP
+Print string and a limited array of values\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIs\fP String 
+.br
+\fIv\fP gsl vector 
+.br
+\fIn\fP int 
+.br
+\fIos\fP Output stream 
+.RE
+.PP
+
+.SS "void DISP (std::string s, const gsl_vector * v, std::ostream & os = \fCstd::cout\fP)\fC [inline]\fP"
+
+.PP
+Print string and long array of values\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIs\fP String 
+.br
+\fIv\fP gsl vector 
+.br
+\fIos\fP Output stream 
+.RE
+.PP
+
+.SS "void DISPT (std::string s, const gsl_vector * v, const int & n, std::ostream & os = \fCstd::cout\fP)\fC [inline]\fP"
+
+.PP
+Print string and limited array of values transposed\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIs\fP String 
+.br
+\fIv\fP gsl vector 
+.br
+\fIn\fP int 
+.br
+\fIos\fP Output stream 
+.RE
+.PP
+
+.SS "void DISPT (std::string s, const gsl_vector * v, std::ostream & os = \fCstd::cout\fP)\fC [inline]\fP"
+
+.PP
+Print string and long array of values Transposed\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIs\fP String 
+.br
+\fIv\fP gsl vector 
+.br
+\fIos\fP Output stream 
+.RE
+.PP
+
+.SS "void flip_sign (gsl_vector * A)\fC [inline]\fP"
+
+.PP
+Flip sign of vector\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIA\fP vector 
+.RE
+.PP
+
+.SS "void get_gsl_matrix (const gsl_matrix * M, double * A, const int & n, const int & m)\fC [inline]\fP"
+
+.PP
+Write gsl vector to double array\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIM\fP gsl matrix 
+.br
+\fIA\fP double matrix 
+.br
+\fIn\fP number of rows 
+.br
+\fIm\fP number of cols 
+.RE
+.PP
+
+.SS "void get_gsl_vector (const gsl_vector * x, double * A, const int & n)\fC [inline]\fP"
+
+.PP
+Write gsl vector to double array\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIx\fP gsl vector 
+.br
+\fIA\fP double array 
+.br
+\fIn\fP Length of vector 
+.RE
+.PP
+
+.SS "void get_gsl_vector (const gsl_vector * x, double * A, const int & n, const int & offset)\fC [inline]\fP"
+
+.PP
+Write gsl vector to double array\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIx\fP gsl vector 
+.br
+\fIA\fP double array 
+.br
+\fIn\fP Length of vector 
+.br
+\fIoffset\fP Vector offset 
+.RE
+.PP
+
+.SS "void increment_gsl_vector (gsl_vector * x, const int & n, const double & e)\fC [inline]\fP"
+
+.PP
+Increment gsl vector element\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIx\fP gsl vector 
+.br
+\fIn\fP index 
+.br
+\fIe\fP incremental value 
+.RE
+.PP
+
+.SS "double norm (const gsl_vector * A, const gsl_vector * B)\fC [inline]\fP"
+
+.PP
+Distance\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIA\fP vector 
+.br
+\fIB\fP vector Returns sqrt((A-B)*(A-B)') 
+.RE
+.PP
+
+.SS "void set_gsl_matrix (const double * A, gsl_matrix * M, const int & n, const int & m)\fC [inline]\fP"
+
+.PP
+Write double matrix to gsl matrix\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIA\fP double matrix 
+.br
+\fIM\fP gsl matrix 
+.br
+\fIn\fP number of rows 
+.br
+\fIm\fP number of cols 
+.RE
+.PP
+
+.SS "void set_gsl_vector (const double * A, gsl_vector * x, const int & n)\fC [inline]\fP"
+
+.PP
+Write double array to gsl vector\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIA\fP double array 
+.br
+\fIx\fP gsl vector 
+.br
+\fIn\fP Length of vector 
+.RE
+.PP
+
+.SS "void set_gsl_vector (const double * A, gsl_vector * x, const int & n, const int & offset)\fC [inline]\fP"
+
+.PP
+Write gsl vector to double array\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIA\fP double array 
+.br
+\fIx\fP gsl vector 
+.br
+\fIn\fP Length of vector 
+.br
+\fIoffset\fP Vector offset 
+.RE
+.PP
+
+.SS "void zero (gsl_vector * V)\fC [inline]\fP"
+
+.PP
+Set gsl vector to zeros\&. 
+.PP
+\fBParameters\fP
+.RS 4
+\fIV\fP gsl vector 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for PArticle Wake ANalysis from the source code\&.
