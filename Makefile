@@ -1,6 +1,7 @@
 all: lib
 
 docs:
+	(mkdir docs) || continue
 	(doxygen config/Doxyfile) || exit 1
 
 lib:
@@ -13,6 +14,7 @@ clean: clear
 
 clear:
 	(rm -rf docs/*) || continue
+	(rmdir docs) || continue
 	(rm -rf data/*) || continue
 	(rm -rf scratch/*) || exit 1
 
