@@ -25,13 +25,13 @@
  *
  */
 
-/*! \fn inline void DISP(std::string s, const gsl_vector *v, std::ostream &os = std::cout)
+/*! \fn inline void OUT(std::string s, const gsl_vector *v, std::ostream &os = std::cout)
  * \brief Print string and long array of values
  * \param	s	String
  * \param 	v	gsl vector
  * \param	os	Output stream
  */
-inline void DISP(std::string s, const gsl_vector *v, std::ostream &os = std::cout){
+inline void OUT(std::string s, const gsl_vector *v, std::ostream &os = std::cout){
 	if(v->size==0){
 		os << "\t" << s << " is empty."<< std::endl;
 	}
@@ -43,14 +43,14 @@ inline void DISP(std::string s, const gsl_vector *v, std::ostream &os = std::cou
 	}
 };
 
-/*! \fn inline void DISP(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout)
+/*! \fn inline void OUT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout)
  * \brief Print string and a limited array of values
  * \param	s	String
  * \param	v	gsl vector
  * \param	n	int
  * \param	os	Output stream
  */
-inline void DISP(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout){
+inline void OUT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout){
 	int m = n<=v->size?n:v->size;
 	if(m==0){
 		os << "\t" << s << " is empty."<< std::endl;
@@ -63,13 +63,13 @@ inline void DISP(std::string s, const gsl_vector *v, const int &n, std::ostream 
 	}
 };
 
-/*! \fn inline void DISPT(std::string s, const gsl_vector *v, std::ostream &os = std::cout)
+/*! \fn inline void OUTT(std::string s, const gsl_vector *v, std::ostream &os = std::cout)
  * \brief Print string and long array of values Transposed
  * \param	s	String
  * \param	v	gsl vector
  * \param	os	Output stream
  */
-inline void DISPT(std::string s, const gsl_vector *v, std::ostream &os = std::cout){
+inline void OUTT(std::string s, const gsl_vector *v, std::ostream &os = std::cout){
 	if(v->size==0){
 		os << "\t" << s << " is empty."<< std::endl;
 	}
@@ -82,14 +82,14 @@ inline void DISPT(std::string s, const gsl_vector *v, std::ostream &os = std::co
 	}
 };
 
-/*! \fn inline void DISPT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout)
+/*! \fn inline void OUTT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout)
  * \brief Print string and limited array of values transposed
  * \param	s	String
  * \param	v	gsl vector
  * \param	n	int
  * \param	os	Output stream
  */
-inline void DISPT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout){
+inline void OUTT(std::string s, const gsl_vector *v, const int &n, std::ostream &os = std::cout){
 	int m = n<=v->size?n:v->size;
 	if(m==0){
 		os << "\t" << s << " is empty."<< std::endl;
@@ -103,13 +103,13 @@ inline void DISPT(std::string s, const gsl_vector *v, const int &n, std::ostream
 	}
 };
 
-/*! \fn inline void DISP(std::string s, const gsl_matrix *m, std::ostream &os = std::cout)
+/*! \fn inline void OUT(std::string s, const gsl_matrix *m, std::ostream &os = std::cout)
  * \brief Print string and matrix of values
  * \param	s	String
  * \param	m	gsl matrix
  * \param	os	Output stream
  */
-inline void DISP(std::string s, const gsl_matrix *m, std::ostream &os = std::cout){
+inline void OUT(std::string s, const gsl_matrix *m, std::ostream &os = std::cout){
 	if(m->size1==0 && m->size2==0){
 		os << "\t" << s << " is empty."<< std::endl;
 	}
