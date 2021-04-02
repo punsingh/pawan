@@ -1,6 +1,6 @@
 all: lib
 
-doc:
+docs:
 	(doxygen config/Doxyfile) || exit 1
 
 lib:
@@ -15,3 +15,5 @@ clear:
 	(rm -rf docs/*) || continue
 	(rm -rf data/*) || continue
 	(rm -rf scratch/*) || exit 1
+
+.PHONY: docs

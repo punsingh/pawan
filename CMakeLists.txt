@@ -9,8 +9,9 @@ include_directories(src)
 
 # Other CMakeLists
 add_subdirectory(src/wake)
+add_subdirectory(src/io)
 
-set(LIB wake)
+set(LIB wake io)
 
 find_package( PkgConfig REQUIRED)
 pkg_check_modules( gsl REQUIRED gsl )
