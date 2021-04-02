@@ -21,6 +21,8 @@ namespace pawan{
 class __wake{
 
 	private:
+		std::string _file;		/*!< Name and path of wake data file*/
+		
 		size_t _numParticles;		/*!< Number of vortex particles */
 		size_t _numDimensions;		/*!< Number of dimensions */
 		gsl_matrix *_position;		/*!< Particle positions */
@@ -48,6 +50,18 @@ class __wake{
 		 * Print wake particle information
 		 */
 		virtual void print();
+
+		//! Write wake data file
+		/*
+		 * Write binary file with all wake particle data
+		 */
+		virtual void write();
+
+		//! Read wake data file
+		/*
+		 * Read binary file with all wake particle data
+		 */
+		virtual void read();
 
 };
 }
