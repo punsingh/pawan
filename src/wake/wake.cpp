@@ -8,6 +8,7 @@
 #include "wake.h"
 
 pawan::__wake::__wake(__io *op){
+	_file = op->getFile() + ".wk";
 	_numDimensions = 3;
 	_numParticles = 10;
 	_position = gsl_matrix_alloc(_numParticles,_numDimensions);
@@ -18,18 +19,6 @@ pawan::__wake::__wake(__io *op){
 			gsl_matrix_set(_vorticity,i,j,i-5*j+M_PI*i*j);
 		}
 	}
-	OUT("_position",_position);
-	OUT("_vorticity",_vorticity);
-	std::string filename = op->getFile() + ".wk";
-	FILE *f = fopen(filename.c_str(),"wb");
-	gsl_matrix_fwrite(f,_position);
-	gsl_matrix_fwrite(f,_vorticity);
-	fclose(f);
-	FILE *f2 = fopen(filename.c_str(),"rb");
-	gsl_matrix_fread(f2,_vorticity);
-	gsl_matrix_fread(f2,_position);
-	fclose(f2);
-
 }
 
 //pawan::__wake::__wake(const __wake &w){
@@ -53,7 +42,24 @@ pawan::__wake::~__wake(){
 }
 
 void pawan::__wake::print(){
+	OUT("_numParticles",_numParticles);
 	OUT("_position",_position);
 	OUT("_vorticity",_vorticity);
+}
+
+void pawan::__wake::write(){
+	FILE *f = fopen(_file.c_str(),"wb");
+	fwrite(&_numParticles,sizeof(size_t),1,f);	
+	gsl_matrix_fwrite(f,_position);
+	gsl_matrix_fwrite(f,_vorticity);
+	fclose(f);
+}
+
+void pawan::__wake::read(){
+	FILE *f = fopen(_file.c_str(),"rb");
+	fwrite(&_numParticles,sizeof(size_t),1,f);	
+	gsl_matrix_fread(f,_vorticity);
+	gsl_matrix_fread(f,_position);
+	fclose(f);
 }
 
