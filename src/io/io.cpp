@@ -21,3 +21,15 @@ std::string pawan::__io::getFile(){
 	return (_root + _name);
 }
 
+FILE* pawan::__io::create_binary_file(std::string suffix = ".bin"){
+	std::string filename = _root + _name + suffix;
+	FILE *f = fopen(filename.c_str(),"wb");
+	return f;
+}
+
+FILE* pawan::__io::open_binary_file(std::string suffix = ".bin"){
+	std::string filename = _root + _name + suffix;
+	FILE *f = fopen(filename.c_str(),"rb");
+	return f;
+}
+

@@ -45,6 +45,17 @@ class __io{
 		 */
 		virtual std::string getFile();
 
+		//! Create binary file
+		/*
+		 * Creates and return binary file with filename
+		 */
+		virtual FILE* create_binary_file(std::string suffix);
+
+		//! Open binary file to read
+		/*
+		 * Opns binary file with filename
+		 */
+		virtual FILE* open_binary_file(std::string suffix);
 };
 }
 #endif
