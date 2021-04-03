@@ -23,6 +23,16 @@ inline void OUT(std::string s, std::ostream &os = std::cout){
 	os << s << std::endl;
 };
 
+/*! \fn inline void OUT(std::string s, size_t v, std::ostream &os = std::cout)
+ * \brief Print string and size
+ * \param s	String
+ * \param v	Output quantity
+ * \param os	Output stream
+ */
+inline void OUT(std::string s, size_t v, std::ostream &os = std::cout){
+	os << s << " = "<< v << std::endl;
+};
+
 /*! \fn inline void OUT(std::string s, T v, std::ostream &os = std::cout)
  * \brief Print string and value
  * \param s	String
