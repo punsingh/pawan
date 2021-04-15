@@ -19,6 +19,7 @@ int main(int argc, char* argv[]){
 	pawan::__io *IO = new pawan::__io();
 	pawan::__wake *W = new pawan::__wake(1.0,1.0,1.0,16);
 	W->print();
+	W->write(IO);
 	delete W;
 	delete IO;
 
