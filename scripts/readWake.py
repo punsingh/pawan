@@ -9,6 +9,7 @@ import numpy as np
 class readWake:
     """ Documentation for readWake
     Wake file includes:
+        double  time
         size_t  _numParticles
         matrix  _position
         matrix  _vorticity
@@ -21,13 +22,22 @@ class readWake:
         with open(fileName, mode='rb') as file:
             fileContent = file.read()
         self.fileSize = len(fileContent)
-        [self.nParticles, fileContent] = self.getInteger(fileContent)
-        fileContent = fileContent[4:]   # Skipping 4 bit blank space
-        [self.position, fileContent] = self.getMatrix(fileContent,self.nParticles)
-        [self.vorticity, fileContent] = self.getMatrix(fileContent,self.nParticles)
-        [self.radius, fileContent] = self.getVector(fileContent,self.nParticles)
-        [self.volume, fileContent] = self.getVector(fileContent,self.nParticles)
-        [self.birthstrength, fileContent] = self.getVector(fileContent,self.nParticles)
+        self.time = []
+        self.nParticles = []
+        self.position = []
+        self.vorticity = []
+        self.radius = []
+        self.volume = []
+        self.birthstrength = []
+        while len(fileContent)>0:
+            [t,n,p,q,r,v,b,fileContent] = self.getWakeState(fileContent)
+            self.time.append(t)
+            self.nParticles.append(n)
+            self.position.append(p)
+            self.vorticity.append(q)
+            self.radius.append(r)
+            self.volume.append(v)
+            self.birthstrength.append(b)
     
     def getInteger(self,fileContent):
         """ getInteger returns an integer 
@@ -35,7 +45,13 @@ class readWake:
         ans = struct.unpack("i", fileContent[:4])[0]
         fileContent = fileContent[4:]
         return [ans, fileContent]
-        # return struct.unpack("i", fileContent[:4])[0]
+    
+    def getDouble(self,fileContent):
+        """ getDouble returns a double 
+        """
+        ans = struct.unpack("d", fileContent[:8])[0]
+        fileContent = fileContent[8:]
+        return [ans, fileContent]
     
     def getVector(self,fileContent,n):
         """ getVector returns a double vector of length n
@@ -51,9 +67,23 @@ class readWake:
         fileContent = fileContent[8*m*n:]
         return [ans, fileContent]
 
+    def getWakeState(self, fileContent):
+        """ getWakeState returns wake data from file
+        """
+        [time, fileContent] = self.getDouble(fileContent)
+        [nParticles, fileContent] = self.getInteger(fileContent)
+        fileContent = fileContent[4:]   # Skipping 4 bit blank space
+        [position, fileContent] = self.getMatrix(fileContent,nParticles)
+        [vorticity, fileContent] = self.getMatrix(fileContent,nParticles)
+        [radius, fileContent] = self.getVector(fileContent,nParticles)
+        [volume, fileContent] = self.getVector(fileContent,nParticles)
+        [birthstrength, fileContent] = self.getVector(fileContent,nParticles)
+        return [time, nParticles, position, vorticity, radius, volume, birthstrength, fileContent]
+
     def printData(self):
         """ printData prints wake properties
         """
+        print(self.time)
         print(self.nParticles)
         print(self.position)
         print(self.vorticity)

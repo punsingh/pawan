@@ -34,7 +34,7 @@ class plotWake:
         self.strengthcolors = self.strength/np.sum(self.strength)
     
     def plot3DQuiver(self):
-        """ plotDQuiver Plots the vortex particles as colored arrows 
+        """ plot3DQuiver Plots the vortex particles as colored arrows 
         """
         norm = matplotlib.colors.Normalize()
         norm.autoscale(self.strengthcolors)
