@@ -24,7 +24,9 @@ class __wake{
 		size_t _numParticles;		/*!< Number of vortex particles */
 		size_t _numDimensions;		/*!< Number of dimensions */
 		gsl_matrix *_position;		/*!< Particle positions */
+		gsl_matrix *_velocity;		/*!< Particle velocity */
 		gsl_matrix *_vorticity;		/*!< Particle vorticities */
+		gsl_matrix *_retvorcity;	/*!< Particle rate of change of vorticity*/
 		gsl_vector *_radius;		/*!< Particle smoothing radii */
 		gsl_vector *_volume;		/*!< Particle volumes */
 		gsl_vector *_birthstrength;	/*!< Strengths of particles at birth */
@@ -37,6 +39,8 @@ class __wake{
 		void create_particles(const int &n);
 
 	public:
+		size_t _size;			/*!< Size of state vector */
+		
 		//! Constructor
 		/*
 		 * Creates default
@@ -68,9 +72,9 @@ class __wake{
 		//! Write wake data file
 		/*
 		 * Write binary file with all wake particle data
-		 * \param op	Input/Output object for file
+		 * \param f	Binary file
 		 */
-		virtual void write(__io *IO);
+		virtual void write(FILE *f);
 
 		//! Read wake data file
 		/*
@@ -78,6 +82,33 @@ class __wake{
 		 * \param op	Input/Output object for file
 		 */
 		virtual void read(__io *IO);
+
+		//! Calculate wake interactions
+		/*
+		 * Calculate velocities and rate of change of vorticities for all wake particles
+		 */
+		virtual void calculateInteraction();
+		
+		//! Set states
+		/*
+		 * Sets positions and vorticities of particles
+		 * \param state		Wake state
+		 */
+		virtual void setStates(const gsl_vector *state);
+		
+		//! Get rates
+		/*
+		 * Get velocities and rate of change of vorticities of particles
+		 * \param rate		Wake rate
+		 */
+		virtual void getRates(gsl_vector *rate);
+		
+		//! Get states
+		/*
+		 * Get position and vorticities of particles
+		 * \param rate		Wake state
+		 */
+		virtual void getStates(gsl_vector *state);
 
 };
 }

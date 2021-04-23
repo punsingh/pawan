@@ -6,12 +6,16 @@
  * @date 03/28/2021
  */
 #include "wake.h"
+#include "wake_utils.h"
 
 void pawan::__wake::create_particles(const int &n){
 	_numDimensions = 3;
 	_numParticles = n;
+	_size = 2*_numParticles*_numDimensions;
 	_position = gsl_matrix_alloc(_numParticles,_numDimensions);
+	_velocity = gsl_matrix_alloc(_numParticles,_numDimensions);
 	_vorticity = gsl_matrix_alloc(_numParticles,_numDimensions);
+	_retvorcity = gsl_matrix_alloc(_numParticles,_numDimensions);
 	_radius = gsl_vector_alloc(_numParticles);
 	_volume = gsl_vector_alloc(_numParticles);
 	_birthstrength = gsl_vector_alloc(_numParticles);
@@ -52,30 +56,30 @@ pawan::__wake::__wake(const double &gamma, const double &radius, const double &c
 
 pawan::__wake::~__wake(){
 	gsl_matrix_free(_position);
+	gsl_matrix_free(_velocity);
 	gsl_matrix_free(_vorticity);
+	gsl_matrix_free(_retvorcity);
 	gsl_vector_free(_radius);
 	gsl_vector_free(_volume);
 	gsl_vector_free(_birthstrength);
 }
 
 void pawan::__wake::print(){
-	OUT("_numParticles",_numParticles);
+	//OUT("_numParticles",_numParticles);
 	OUT("_position",_position);
-	OUT("_vorticity",_vorticity);
-	OUT("_radius",_radius);
-	OUT("_volume",_volume);
-	OUT("_birthstrength",_birthstrength);
+	//OUT("_vorticity",_vorticity);
+	//OUT("_radius",_radius);
+	//OUT("_volume",_volume);
+	//OUT("_birthstrength",_birthstrength);
 }
 
-void pawan::__wake::write(__io *IO){
-	FILE *f = IO->create_binary_file(".wake");
+void pawan::__wake::write(FILE *f){
 	fwrite(&_numParticles,sizeof(size_t),1,f);	
 	gsl_matrix_fwrite(f,_position);
 	gsl_matrix_fwrite(f,_vorticity);
 	gsl_vector_fwrite(f,_radius);
 	gsl_vector_fwrite(f,_volume);
 	gsl_vector_fwrite(f,_birthstrength);
-	fclose(f);
 }
 
 void pawan::__wake::read(__io *IO){
@@ -87,5 +91,60 @@ void pawan::__wake::read(__io *IO){
 	gsl_vector_fread(f,_volume);
 	gsl_vector_fread(f,_birthstrength);
 	fclose(f);
+}
+
+void pawan::__wake::calculateInteraction(){
+	gsl_matrix_set_zero(_velocity);
+	gsl_matrix_set_zero(_retvorcity);
+	for(size_t i_src = 0; i_src < _numParticles; ++i_src){
+		gsl_vector_const_view r_src = gsl_matrix_const_row(_position,i_src);
+		gsl_vector_const_view a_src = gsl_matrix_const_row(_vorticity,i_src);
+		gsl_vector_view dr_src = gsl_matrix_row(_velocity,i_src);
+		gsl_vector_view da_src = gsl_matrix_row(_retvorcity,i_src);
+		double v_src = gsl_vector_get(_volume,i_src);
+		for(size_t i_trg = i_src + 1; i_trg < _numParticles; ++i_trg){
+			gsl_vector_const_view r_trg = gsl_matrix_const_row(_position,i_trg);
+			gsl_vector_const_view a_trg= gsl_matrix_const_row(_vorticity,i_trg);
+			gsl_vector_view dr_trg = gsl_matrix_row(_velocity,i_trg);
+			gsl_vector_view da_trg = gsl_matrix_row(_retvorcity,i_trg);
+			double v_trg = gsl_vector_get(_volume,i_trg);
+			INTERACT(0.,1.,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,v_src,v_trg,&dr_src.vector,&dr_trg.vector,&da_src.vector,&da_trg.vector);
+		}
+	}
+}
+
+void pawan::__wake::setStates(const gsl_vector *state){
+	//OUT("setStates");
+	size_t np = state->size/2/_numDimensions;
+	size_t matrixsize = np*_numDimensions;
+	gsl_matrix_const_view pos = gsl_matrix_const_view_vector(state,np,_numDimensions);
+	gsl_matrix_memcpy(_position,&pos.matrix);
+	gsl_vector_const_view vor = gsl_vector_const_subvector(state,matrixsize,matrixsize);
+	gsl_matrix_const_view vrx = gsl_matrix_const_view_vector(&vor.vector,np,_numDimensions);
+	gsl_matrix_memcpy(_vorticity,&vrx.matrix);
+}
+
+void pawan::__wake::getRates(gsl_vector *rate){
+	//OUT("getRates");
+	for(size_t i = 0; i<_numParticles; ++i){
+		for(size_t j = 0; j<_numDimensions; ++j){
+			size_t ind = i*_numDimensions + j;
+			gsl_vector_set(rate,ind,gsl_matrix_get(_velocity,i,j));
+			ind += _size/2;
+			gsl_vector_set(rate,ind,gsl_matrix_get(_retvorcity,i,j));
+		}
+	}
+}
+
+void pawan::__wake::getStates(gsl_vector *state){
+	//OUT("getStates");
+	for(size_t i = 0; i<_numParticles; ++i){
+		for(size_t j = 0; j<_numDimensions; ++j){
+			size_t ind = i*_numDimensions + j;
+			gsl_vector_set(state,ind,gsl_matrix_get(_position,i,j));
+			ind += _size/2;
+			gsl_vector_set(state,ind,gsl_matrix_get(_vorticity,i,j));
+		}
+	}
 }
 
