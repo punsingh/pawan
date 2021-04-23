@@ -131,6 +131,32 @@ inline void OUT(std::string s, const gsl_matrix *m, std::ostream &os = std::cout
  *
  */
 
+/*! \fn inline void gsl_cross(const gsl_vector *a,const gsl_vector *b, gsl_vector *c)
+ * \brief Compute vector cross product
+ * \param	a	gsl vector 1
+ * \param 	b	gsl vector 2
+ * \param	c	Output gsl vector
+ */
+inline void gsl_cross(const gsl_vector *a, const gsl_vector *b, gsl_vector *c){
+	if(a->size==3 && b->size==3 && c->size==3){
+		double ax = gsl_vector_get(a,0);	
+		double ay = gsl_vector_get(a,1);	
+		double az = gsl_vector_get(a,2);	
+		double bx = gsl_vector_get(b,0);	
+		double by = gsl_vector_get(b,1);	
+		double bz = gsl_vector_get(b,2);	
+		gsl_vector_set(c,0,ay*bz-az*by);
+		gsl_vector_set(c,1,az*bx-ax*bz);
+		gsl_vector_set(c,2,ax*by-ay*bx);
+	}
+};
+
+/*
+ *
+ * VECTOR OPERATIONS
+ *
+ */
+
 /*! \fn inline void get_gsl_vector(const gsl_vector *x, double *A, const int &n)
  * \brief	Write gsl vector to double array
  * \param	x	gsl vector
