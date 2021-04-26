@@ -13,24 +13,23 @@ pawan::__integration::__integration(const double &t, const size_t &n){
 	_n = n;
 }
 
-void pawan::__integration::integrate(__wake *W, __io *IO){
-	gsl_vector *states = gsl_vector_calloc(W->_size);
-	gsl_vector *rates = gsl_vector_calloc(W->_size);
+void pawan::__integration::integrate(__interaction *S, __io *IO){
+	gsl_vector *states = gsl_vector_calloc(S->_size);
+	gsl_vector *rates = gsl_vector_calloc(S->_size);
 	FILE *f = IO->create_binary_file(".wake");
 	double t = 0.0;
 	fwrite(&t,sizeof(double),1,f);	
-	W->write(f);
-	W->getStates(states);
+	S->write(f);
+	S->getStates(states);
 	for(size_t i = 1; i<=_n; ++i){
 		t = i*_dt;
-		W->calculateInteraction();
-		W->getRates(rates);
+		S->interact();
+		S->getRates(rates);
 		gsl_vector_scale(rates,_dt);
 		gsl_vector_add(states,rates);
-		W->setStates(states);
-		W->print();
+		S->setStates(states);
 		fwrite(&t,sizeof(double),1,f);	
-		W->write(f);
+		S->write(f);
 	}
 	fclose(f);
 	

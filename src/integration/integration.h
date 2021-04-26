@@ -12,7 +12,7 @@
 #include <iostream>
 #include <gsl/gsl_vector.h>
 #include "src/utils/print_utils.h"
-#include "src/wake/wake.h"
+#include "src/interaction/interaction.h"
 #include "src/io/io.h"
 
 namespace pawan{
@@ -41,10 +41,10 @@ class __integration{
 		//! Integrate
 		/*
 		 * Integrates wake
-		 * \param	W	Wake object
+		 * \param	S	Interaction solver
 		 * \param	IO	Input/Output file writing
 		 */
-		void integrate(__wake *W, __io *IO);
+		void integrate(__interaction *S, __io *IO);
 };
 }
 #endif
