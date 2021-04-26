@@ -6,7 +6,6 @@
  * @date 03/28/2021
  */
 #include "wake.h"
-#include "wake_utils.h"
 
 void pawan::__wake::create_particles(const int &n){
 	_numDimensions = 3;
@@ -34,26 +33,6 @@ pawan::__wake::__wake(){
 	}
 }
 
-pawan::__wake::__wake(const double &gamma, const double &radius, const double &core, const int &nRadial){
-	create_particles(nRadial);
-	double dPsi = 2.0*M_PI/nRadial; 		/*!< Azimuthal step size */ 
-	double psi = 0.0; 				/*!< Initial azimuth location */ 
-	double strength = gamma*radius*dPsi;		/*!< Vorticity magnitude */ 
-	double volume = 4.0*M_PI*gsl_pow_3(core)/3.0;	/*!< Volume of annular segment */ 
-	for(int i = 0; i<_numParticles; ++i){
-		psi = i*dPsi;
-		gsl_matrix_set(_position,i,0,radius*cos(psi));
-		gsl_matrix_set(_position,i,1,radius*sin(psi));
-		gsl_matrix_set(_position,i,2,0.0);
-		gsl_matrix_set(_vorticity,i,0,-strength*sin(psi));
-		gsl_matrix_set(_vorticity,i,1,strength*cos(psi));
-		gsl_matrix_set(_vorticity,i,2,0.0);
-		gsl_vector_set(_radius,i,core);
-		gsl_vector_set(_volume,i,volume);
-		gsl_vector_set(_birthstrength,i,strength);
-	}
-}
-
 pawan::__wake::~__wake(){
 	gsl_matrix_free(_position);
 	gsl_matrix_free(_velocity);
@@ -65,12 +44,12 @@ pawan::__wake::~__wake(){
 }
 
 void pawan::__wake::print(){
-	//OUT("_numParticles",_numParticles);
+	OUT("_numParticles",_numParticles);
 	OUT("_position",_position);
-	//OUT("_vorticity",_vorticity);
-	//OUT("_radius",_radius);
-	//OUT("_volume",_volume);
-	//OUT("_birthstrength",_birthstrength);
+	OUT("_vorticity",_vorticity);
+	OUT("_radius",_radius);
+	OUT("_volume",_volume);
+	OUT("_birthstrength",_birthstrength);
 }
 
 void pawan::__wake::write(FILE *f){
@@ -91,26 +70,6 @@ void pawan::__wake::read(__io *IO){
 	gsl_vector_fread(f,_volume);
 	gsl_vector_fread(f,_birthstrength);
 	fclose(f);
-}
-
-void pawan::__wake::calculateInteraction(){
-	gsl_matrix_set_zero(_velocity);
-	gsl_matrix_set_zero(_retvorcity);
-	for(size_t i_src = 0; i_src < _numParticles; ++i_src){
-		gsl_vector_const_view r_src = gsl_matrix_const_row(_position,i_src);
-		gsl_vector_const_view a_src = gsl_matrix_const_row(_vorticity,i_src);
-		gsl_vector_view dr_src = gsl_matrix_row(_velocity,i_src);
-		gsl_vector_view da_src = gsl_matrix_row(_retvorcity,i_src);
-		double v_src = gsl_vector_get(_volume,i_src);
-		for(size_t i_trg = i_src + 1; i_trg < _numParticles; ++i_trg){
-			gsl_vector_const_view r_trg = gsl_matrix_const_row(_position,i_trg);
-			gsl_vector_const_view a_trg= gsl_matrix_const_row(_vorticity,i_trg);
-			gsl_vector_view dr_trg = gsl_matrix_row(_velocity,i_trg);
-			gsl_vector_view da_trg = gsl_matrix_row(_retvorcity,i_trg);
-			double v_trg = gsl_vector_get(_volume,i_trg);
-			INTERACT(0.,1.,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,v_src,v_trg,&dr_src.vector,&dr_trg.vector,&da_src.vector,&da_trg.vector);
-		}
-	}
 }
 
 void pawan::__wake::setStates(const gsl_vector *state){

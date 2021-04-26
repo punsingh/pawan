@@ -20,7 +20,17 @@ namespace pawan{
 
 class __wake{
 
-	private:
+	protected:
+		
+		//! Create particles
+		/*
+		 * Creates empty particles
+		 * \param n	Number of particles
+		 */
+		virtual void create_particles(const int &n);
+
+	public:
+		size_t _size;			/*!< Size of state vector */
 		size_t _numParticles;		/*!< Number of vortex particles */
 		size_t _numDimensions;		/*!< Number of dimensions */
 		gsl_matrix *_position;		/*!< Particle positions */
@@ -31,37 +41,17 @@ class __wake{
 		gsl_vector *_volume;		/*!< Particle volumes */
 		gsl_vector *_birthstrength;	/*!< Strengths of particles at birth */
 		
-		//! Create particles
-		/*
-		 * Creates empty particles
-		 * \param n	Number of particles
-		 */
-		void create_particles(const int &n);
-
-	public:
-		size_t _size;			/*!< Size of state vector */
-		
 		//! Constructor
 		/*
 		 * Creates default
 		 */
 		__wake();
 		
-		//! Constructor for thin vortex ring
-		/*
-		 * Creates thin vortex ring
-		 * \param gamma		Strength of ring	
-		 * \param radius	Ring radius
-		 * \param core		Core radius
-		 * \param nRadial	Number of particles
-		 */
-		__wake(const double &gamma, const double &radius, const double &core, const int &nRadial);
-		
 		//! Destructor
 		/*
 		 * Deletes particles
 		 */
-		~__wake();
+		virtual ~__wake();
 
 		//! Print all wake particles
 		/*
@@ -82,12 +72,6 @@ class __wake{
 		 * \param op	Input/Output object for file
 		 */
 		virtual void read(__io *IO);
-
-		//! Calculate wake interactions
-		/*
-		 * Calculate velocities and rate of change of vorticities for all wake particles
-		 */
-		virtual void calculateInteraction();
 		
 		//! Set states
 		/*
