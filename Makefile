@@ -11,6 +11,9 @@ lib:
 clean: clear
 	(rm -rf build) || continue
 	(rm pawan) || continue
+	(rm -rf scripts/*.pyc) || continue
+	(rm -rf scripts/*.py0) || continue
+	(rm -rf scripts/__pycache__) || continue
 
 clear:
 	(rm -rf docs/*) || continue
