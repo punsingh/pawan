@@ -38,6 +38,7 @@ class readWake:
             self.radius.append(r)
             self.volume.append(v)
             self.birthstrength.append(b)
+        self.nTimesteps = len(self.time)
     
     def getInteger(self,fileContent):
         """ getInteger returns an integer 
@@ -83,6 +84,7 @@ class readWake:
     def printData(self):
         """ printData prints wake properties
         """
+        print(self.nTimesteps)
         print(self.time)
         print(self.nParticles)
         print(self.position)
