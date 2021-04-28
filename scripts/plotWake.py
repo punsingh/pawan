@@ -25,7 +25,18 @@ class plotWake:
         self.radius = data.radius
         self.volume = data.volume
         self.birthstrength = data.birthstrength
-    
+        
+        self.position_arr = np.asarray(self.position)        
+        multiplier = 1.25
+        X = multiplier
+        xmax = X*max(np.amax(self.position_arr[:,:,0]),np.amax(self.position_arr[:,:,1]))
+        xmin = X*min(np.amin(self.position_arr[:,:,0]),np.amin(self.position_arr[:,:,1]))
+        ymax = X*xmax
+        ymin = X*xmin
+        zmax = X*np.amax(self.position_arr[:,:,2])
+        zmin = X*np.amin(self.position_arr[:,:,2])
+        self.plot_limits = {'x':[xmax,xmin],'y':[ymax,ymin],'z':[zmax,zmin]}
+        
     def getTimeStep(self,n=0):
         """ 
         getTimeStep Loads particle position and vorticity at nth time step 
@@ -57,7 +68,8 @@ class plotWake:
         self.getTimeStep(n)
         y = self.setColors()
         fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
+        print('plotting static figure')
+        ax = fig.add_subplot(111, projection='3d')
         ax.scatter(self.x,self.y,self.z,color=y)
         ax.quiver(self.x,self.y,self.z,self.p,self.q,self.r,length=0.1,color=y,normalize=True)
         ax.set_xlim([-2,2])
@@ -70,18 +82,20 @@ class plotWake:
         plotAnimate Plots the vortex particles as colored spheres 
         """
         fig = plt.figure(figsize=(12,10))
-        ax = fig.add_subplot(projection='3d')
+        print('plotting animation')
+        ax = fig.add_subplot(111, projection='3d')
         self.getTimeStep(0)
         self.scplot = ax.scatter(self.x,self.y,self.z)
         self.qvplot = ax.quiver(self.x,self.y,self.z,self.p,self.q,self.r,length=0.2)
-        ax.set_xlim([-2,2])
-        ax.set_ylim([-2,2])
-        ax.set_zlim([-1,3])
+        ax.set_xlim(self.plot_limits['x'])
+        ax.set_ylim(self.plot_limits['y'])
+        ax.set_zlim(self.plot_limits['z'])
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+        
         def update(num):
-            self.getTimeStep(num)
+            self.getTimeStep(n=num)
             y = self.setColors()
             self.qvplot.remove()
             self.scplot.remove()
@@ -89,6 +103,7 @@ class plotWake:
             self.scplot = ax.scatter(self.x,self.y,self.z,color=y)
         ani = animation.FuncAnimation( fig, update, self.nTimesteps, interval = 200)
         plt.show()
+        ani.save('wake.mp4',writer='ffmpeg',fps=2, bitrate = 1000)
 
     def setColors(self):
         norm = matplotlib.colors.Normalize()
@@ -111,7 +126,7 @@ class plotWake:
         print(self.birthstrength)
 
 if __name__ == "__main__":
-    pw = plotWake("data/temp.wake")
+    pw = plotWake("../data/temp.wake")
     # pw.plotAnimate()
     pw.plotAnimate()
     # pw.plot3DQuiver(0)
