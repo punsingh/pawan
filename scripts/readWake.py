@@ -30,7 +30,7 @@ class readWake:
         self.volume = []
         self.birthstrength = []
         while len(fileContent)>0:
-            [t,n,p,q,r,v,b,fileContent] = self.getWakeState(fileContent)
+            [t,n,p,q,r,v,b,fileContent] = self.getAllWakeState(fileContent)
             self.time.append(t)
             self.nParticles.append(n)
             self.position.append(p)
@@ -67,11 +67,37 @@ class readWake:
         ans = np.array(struct.unpack("d"*m*n,fileContent[:8*m*n])).reshape((m,n))
         fileContent = fileContent[8*m*n:]
         return [ans, fileContent]
+    
+    def getAllWakeState(self, fileContent):
+        """ getAllWakeState returns wake data from file
+        """
+        [time, fileContent] = self.getDouble(fileContent)
+        [nWake, fileContent] = self.getInteger(fileContent)
+        fileContent = fileContent[4:]   # Skipping 4 bit blank space
+        nParticles = 0 
+        position = []
+        vorticity = []
+        radius = []
+        volume = []
+        birthstrength = []
+        for n in range(nWake):
+            [npar,pos,vort,rad,vol,bs,fileContent] = self.getWakeState(fileContent)
+            nParticles = nParticles + npar
+            position.append(pos)
+            vorticity.append(vort)
+            radius.append(rad)
+            volume.append(vol)
+            birthstrength.append(bs)
+        position = np.concatenate(position)
+        vorticity = np.concatenate(vorticity)
+        radius = np.concatenate(radius)
+        volume = np.concatenate(volume)
+        birthstrength = np.concatenate(birthstrength)
+        return [time, nParticles, position, vorticity, radius, volume, birthstrength, fileContent]
 
     def getWakeState(self, fileContent):
         """ getWakeState returns wake data from file
         """
-        [time, fileContent] = self.getDouble(fileContent)
         [nParticles, fileContent] = self.getInteger(fileContent)
         fileContent = fileContent[4:]   # Skipping 4 bit blank space
         [position, fileContent] = self.getMatrix(fileContent,nParticles)
@@ -79,7 +105,7 @@ class readWake:
         [radius, fileContent] = self.getVector(fileContent,nParticles)
         [volume, fileContent] = self.getVector(fileContent,nParticles)
         [birthstrength, fileContent] = self.getVector(fileContent,nParticles)
-        return [time, nParticles, position, vorticity, radius, volume, birthstrength, fileContent]
+        return [nParticles, position, vorticity, radius, volume, birthstrength, fileContent]
 
     def printData(self):
         """ printData prints wake properties
