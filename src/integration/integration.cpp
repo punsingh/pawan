@@ -21,7 +21,9 @@ void pawan::__integration::integrate(__interaction *S, __io *IO){
 	fwrite(&t,sizeof(double),1,f);	
 	S->write(f);
 	S->getStates(states);
+	double tStart = TIME();
 	for(size_t i = 1; i<=_n; ++i){
+		OUT("\tStep",i);
 		t = i*_dt;
 		S->interact();
 		S->getRates(rates);
@@ -32,6 +34,8 @@ void pawan::__integration::integrate(__interaction *S, __io *IO){
 		S->write(f);
 	}
 	fclose(f);
+	double tEnd = TIME();
+	OUT("Total Time (s)",tEnd - tStart);
 	gsl_vector_free(states);
 	gsl_vector_free(rates);
 }

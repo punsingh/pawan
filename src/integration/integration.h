@@ -12,6 +12,7 @@
 #include <iostream>
 #include <gsl/gsl_vector.h>
 #include "src/utils/print_utils.h"
+#include "src/utils/timing_utils.h"
 #include "src/interaction/interaction.h"
 #include "src/io/io.h"
 
