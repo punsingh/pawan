@@ -81,6 +81,7 @@ void pawan::__interaction::interact(__wake *W1, __wake *W2){
 }
 
 void pawan::__interaction::write(FILE *f){
+	fwrite(&_nWake,sizeof(size_t),1,f);	
 	for(auto &w: _W){
 		w->write(f);
 	}
