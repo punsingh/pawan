@@ -6,9 +6,10 @@
  * @date 04/01/2021
  */
 #include "io.h"
+#include <unistd.h>
 
 pawan::__io::__io(){
-	_root = "data/";
+	_root = "../data/";
 	_name = "temp";
 }
 

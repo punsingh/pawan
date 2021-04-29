@@ -36,3 +36,12 @@
 
 # VIM session files
 *.vim
+
+# files generated using pawan output
+*.mp4
+*.gif
+*.png
+*.jpg
+*.plt
+*.eps
+*.pdf
