@@ -40,10 +40,18 @@ class __parallel : public __interaction{
 		
 		//! Constructor
 		/*
-		 * Creates empty integral
+		 * Creates single wake interaction object
 		 * \param	W	Wake object pointer
 		 */
 		__parallel(__wake *W);
+		
+		//! Constructor
+		/*
+		 * Creates empty interaction object with two wakes
+		 * \param	W1	Wake object pointer
+		 * \param	W2	Wake object pointer
+		 */
+		__parallel(__wake *W1, __wake *W2);
 		
 		//! Destructor
 		/*

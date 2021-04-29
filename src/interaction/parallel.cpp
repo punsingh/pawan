@@ -7,8 +7,8 @@
  */
 #include "parallel.h"
 
-pawan::__parallel::__parallel(__wake *W):__interaction(W){
-}
+pawan::__parallel::__parallel(__wake *W):__interaction(W){}
+pawan::__parallel::__parallel(__wake *W1, __wake *W2):__interaction(W1,W2){}
 
 void pawan::__parallel::interact(__wake *W){
 	gsl_matrix_set_zero(W->_velocity);
