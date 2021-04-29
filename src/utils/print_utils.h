@@ -14,6 +14,20 @@
 #include <sstream>
 #include <string>
 
+/*! \fn inline void HEADER(std::ostream &os = std::cout)
+ * \brief Print string
+ */
+inline void PAWAN(std::ostream &os = std::cout){
+	os << "********************************************************************************" << std::endl;
+	os << "\t\t\t    _"<< std::endl;
+	os << "\t\t    o o o  |_|  /\\ \\  /\\  / /\\  |\\ |  o o o"<< std::endl;
+	os << "\t\t     o o o |   /  \\ \\/  \\/ /  \\ | \\| o o o" << std::endl;
+	os << std::endl;
+	os << "\t\t\t     PArticle Wake ANalysis" << std::endl;
+	os << "\t\t\t     (c) Puneet Singh 2021" << std::endl;
+	os << "********************************************************************************" << std::endl;
+};
+
 /*! \fn inline void OUT(std::string s, std::ostream &os = std::cout)
  * \brief Print string
  * \param s	String
@@ -31,6 +45,16 @@ inline void OUT(std::string s, std::ostream &os = std::cout){
  */
 inline void OUT(std::string s, size_t v, std::ostream &os = std::cout){
 	os << s << " = "<< v << std::endl;
+};
+
+/*! \fn inline void OUT(std::string s, double d, std::ostream &os = std::cout)
+ * \brief Print string and size
+ * \param s	String
+ * \param d	Output quantity
+ * \param os	Output stream
+ */
+inline void OUT(std::string s, double d, std::ostream &os = std::cout){
+	os << s << " = "<< d << std::endl;
 };
 
 /*! \fn inline void OUT(std::string s, T v, std::ostream &os = std::cout)
