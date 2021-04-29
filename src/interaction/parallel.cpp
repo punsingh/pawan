@@ -6,8 +6,6 @@
  * @date 04/24/2021
  */
 #include "parallel.h"
-#include <sys/time.h>
-#include <omp.h>
 
 pawan::__parallel::__parallel(__wake *W):__interaction(W){
 }
@@ -48,5 +46,28 @@ void pawan::__parallel::interact(__wake *W){
 		gsl_vector_set(&da_src.vector,0,qx + gsl_vector_get(&da_src.vector,0));
 		gsl_vector_set(&da_src.vector,1,qy + gsl_vector_get(&da_src.vector,1));
 		gsl_vector_set(&da_src.vector,2,qz + gsl_vector_get(&da_src.vector,2));
+	}
+}
+
+void pawan::__parallel::interact(__wake *W1, __wake *W2){
+	gsl_matrix_set_zero(W1->_velocity);
+	gsl_matrix_set_zero(W1->_retvorcity);
+	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
+		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
+		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
+		gsl_vector_view dr_src = gsl_matrix_row(W1->_velocity,i_src);
+		gsl_vector_view da_src = gsl_matrix_row(W1->_retvorcity,i_src);
+		double s_src = gsl_vector_get(W1->_radius,i_src);
+		double v_src = gsl_vector_get(W1->_volume,i_src);
+		#pragma omp parallel for
+		for(size_t i_trg = 0; i_trg < W2->_numParticles; ++i_trg){
+			gsl_vector_const_view r_trg = gsl_matrix_const_row(W2->_position,i_trg);
+			gsl_vector_const_view a_trg = gsl_matrix_const_row(W2->_vorticity,i_trg);
+			gsl_vector_view dr_trg = gsl_matrix_row(W2->_velocity,i_trg);
+			gsl_vector_view da_trg = gsl_matrix_row(W2->_retvorcity,i_trg);
+			double s_trg = gsl_vector_get(W2->_radius,i_trg);
+			double v_trg = gsl_vector_get(W2->_volume,i_trg);
+			INTERACT(_nu,s_src,s_trg,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,v_src,v_trg,&dr_src.vector,&dr_trg.vector,&da_src.vector,&da_trg.vector);
+		}
 	}
 }
