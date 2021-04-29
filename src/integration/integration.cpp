@@ -32,7 +32,6 @@ void pawan::__integration::integrate(__interaction *S, __io *IO){
 		S->write(f);
 	}
 	fclose(f);
-	
 	gsl_vector_free(states);
 	gsl_vector_free(rates);
 }
