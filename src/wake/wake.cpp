@@ -52,13 +52,20 @@ void pawan::__wake::print(){
 	OUT("_birthstrength",_birthstrength);
 }
 
-void pawan::__wake::write(FILE *f){
+void pawan::__wake::save(FILE *f){
 	fwrite(&_numParticles,sizeof(size_t),1,f);	
 	gsl_matrix_fwrite(f,_position);
 	gsl_matrix_fwrite(f,_vorticity);
 	gsl_vector_fwrite(f,_radius);
 	gsl_vector_fwrite(f,_volume);
 	gsl_vector_fwrite(f,_birthstrength);
+}
+
+void pawan::__wake::write(FILE *f){
+	fwrite(&_numParticles,sizeof(size_t),1,f);	
+	gsl_matrix_fwrite(f,_position);
+	gsl_matrix_fwrite(f,_vorticity);
+	gsl_vector_fwrite(f,_radius);
 }
 
 void pawan::__wake::read(__io *IO){

@@ -64,6 +64,13 @@ class __wake{
 		 * Write binary file with all wake particle data
 		 * \param f	Binary file
 		 */
+		virtual void save(FILE *f);
+
+		//! Write wake data file
+		/*
+		 * Write binary file with all wake particle data
+		 * \param f	Binary file
+		 */
 		virtual void write(FILE *f);
 
 		//! Read wake data file
