@@ -15,7 +15,6 @@ pawan::__integration::__integration(const double &t, const size_t &n){
 
 void pawan::__integration::integrate(__interaction *S, __io *IO){
 	gsl_vector *states = gsl_vector_calloc(S->_size);
-	gsl_vector *rates = gsl_vector_calloc(S->_size);
 	FILE *f = IO->create_binary_file(".wake");
 	double t = 0.0;
 	fwrite(&t,sizeof(double),1,f);	
@@ -25,11 +24,7 @@ void pawan::__integration::integrate(__interaction *S, __io *IO){
 	for(size_t i = 1; i<=_n; ++i){
 		OUT("\tStep",i);
 		t = i*_dt;
-		S->interact();
-		S->getRates(rates);
-		gsl_vector_scale(rates,_dt);
-		gsl_vector_add(states,rates);
-		S->setStates(states);
+		step(_dt,S,states);
 		fwrite(&t,sizeof(double),1,f);	
 		S->write(f);
 	}
@@ -37,5 +32,14 @@ void pawan::__integration::integrate(__interaction *S, __io *IO){
 	double tEnd = TIME();
 	OUT("Total Time (s)",tEnd - tStart);
 	gsl_vector_free(states);
+}
+
+void pawan::__integration::step(const double &dt, __interaction *S, gsl_vector* states){
+	gsl_vector *rates = gsl_vector_calloc(S->_size);
+	S->interact();
+	S->getRates(rates);
+	gsl_vector_scale(rates,dt);
+	gsl_vector_add(states,rates);
+	S->setStates(states);
 	gsl_vector_free(rates);
 }

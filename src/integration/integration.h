@@ -19,10 +19,19 @@
 namespace pawan{
 class __integration{
 
-	private:
+	protected:
 		double _dt;	/*!< Time step size */
 		double _t;	/*!< Total time */
 		size_t _n;	/*!< Number of time steps */
+		
+		//! Time step
+		/*
+		 * Advance one time step
+		 * \param	dt	Time step
+		 * \param	S	Interaction solver
+		 * \param	state	System state
+		 */
+		virtual void step(const double &dt,__interaction *S, gsl_vector *state);
 
 	public:
 		//! Constructor
