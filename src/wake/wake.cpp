@@ -114,3 +114,9 @@ void pawan::__wake::getStates(gsl_vector *state){
 	}
 }
 
+void pawan::__wake::translate(const size_t &n, const double &x){
+	for(int i = 0; i<_numParticles; ++i){
+		gsl_matrix_set(_position,i,n,x + gsl_matrix_get(_position,i,n));
+	}
+
+}
