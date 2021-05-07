@@ -5,6 +5,7 @@ Documentation for readWakeFile package
 """
 import struct
 import numpy as np
+import argparse as ap
 
 class readWake:
     """ Documentation for readWake
@@ -14,6 +15,7 @@ class readWake:
         matrix  _position
         matrix  _vorticity
         vector  _radius
+        The following have been removed:
         vector  _volume
         vector  _birthstrength
     """
@@ -120,10 +122,13 @@ class readWake:
         print(self.position)
         print(self.vorticity)
         print(self.radius)
-        print(self.volume)
-        print(self.birthstrength)
+        # print(self.volume)
+        # print(self.birthstrength)
 
 if __name__ == "__main__":
-    rw = readWake("data/temp.wake")
+    parser = ap.ArgumentParser()
+    parser.add_argument("filename", nargs='?', default="data/temp.wake", help=".wake file")
+    args = parser.parse_args()
+    rw = readWake(args.filename)
     rw.printData()
 
