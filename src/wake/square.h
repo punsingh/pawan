@@ -33,18 +33,6 @@ class __square : public __wake{
 		 */
 		__square(const double &gamma, const double &side, const double &core, const int &nSide);
 		
-		//! Constructor for vogel model vortex square
-		/*
-		 * Creates thin vortex ring square
-		 * \param gamma		Strength of vortex ring square	
-		 * \param side		Square side length
-		 * \param core		Core radius
-		 * \param nSide 	Number of particles/side
-		 * \param nCore		Number of core layers
-		 * \param shift		Index from zero or halfpoint
-		 */
-		__square(const double &gamma, const double &side, const double &core, const int &nSide, const int &nCore, const bool &shift = false);
-		
 		//! Destructor
 		/*
 		 * Deletes particles
