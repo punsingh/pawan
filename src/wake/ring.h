@@ -41,8 +41,9 @@ class __ring : public __wake{
 		 * \param core		Core radius
 		 * \param nRadial	Number of radial sections
 		 * \param nCore		Number of core layers
+		 * \param shift		Index from zero or halfpoint
 		 */
-		__ring(const double &gamma, const double &radius, const double &core, const int &nRadial, const int &nCore);
+		__ring(const double &gamma, const double &radius, const double &core, const int &nRadial, const int &nCore, const bool &shift = false);
 		
 		//! Destructor
 		/*

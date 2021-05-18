@@ -74,7 +74,7 @@ pawan::__ring::__ring(const double &gamma, const double &radius, const double &c
 	//}
 //}
 
-pawan::__ring::__ring(const double &gamma, const double &radius, const double &core, const int &nRadial, const int &nLayers){
+pawan::__ring::__ring(const double &gamma, const double &radius, const double &core, const int &nRadial, const int &nLayers, const bool &shift){
 	create_particles(nRadial*gsl_pow_2(2*nLayers-1));
 	double dPsi = 2.0*M_PI/nRadial; 					/*!< Azimuthal step size */ 
 	double K = -log(0.01);
@@ -85,8 +85,9 @@ pawan::__ring::__ring(const double &gamma, const double &radius, const double &c
 	double volume = 4.0*M_PI*gsl_pow_3(sigma)/3.0;				/*!< Volume of annular segment */ 
 	size_t index = 0;	
 	double mag0 = strength*(1.0-exp(-K*gsl_pow_2(r0/core)))/(r0*r0);
+	double delpsi = shift?0.5*dPsi:0.; 
 	for(size_t i = 0; i<nRadial; ++i){
-		double psi = i*dPsi;
+		double psi = i*dPsi + delpsi;
 		double sPsi = sin(psi);
 		double cPsi = cos(psi);
 
