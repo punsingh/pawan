@@ -11,8 +11,6 @@ pawan::__parallel::__parallel(__wake *W):__interaction(W){}
 pawan::__parallel::__parallel(__wake *W1, __wake *W2):__interaction(W1,W2){}
 
 void pawan::__parallel::interact(__wake *W){
-	gsl_matrix_set_zero(W->_velocity);
-	gsl_matrix_set_zero(W->_retvorcity);
 	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
@@ -50,8 +48,6 @@ void pawan::__parallel::interact(__wake *W){
 }
 
 void pawan::__parallel::interact(__wake *W1, __wake *W2){
-	gsl_matrix_set_zero(W1->_velocity);
-	gsl_matrix_set_zero(W1->_retvorcity);
 	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
