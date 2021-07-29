@@ -23,6 +23,10 @@ pawan::__interaction::__interaction(__wake *W1, __wake *W2){
 	_nWake = 2;
 }
 
+void pawan::__interaction::solve(){
+	interact();
+}
+
 void pawan::__interaction::interact(){
 	for(auto &w : _W){
 		gsl_matrix_set_zero(w->_velocity);
