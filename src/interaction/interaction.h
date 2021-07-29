@@ -14,14 +14,21 @@
 
 #include <gsl/gsl_vector.h>
 #include "src/utils/print_utils.h"
+#include "src/system/system.h"
 #include "src/wake/wake.h"
 
 namespace pawan{
-class __interaction{
+class __interaction : public __system{
 
 	protected:
 		double _nu;		/*!< Kinematic viscosity */
 		size_t _nWake;		/*!< Number of wake objects*/
+		
+		//! Interact
+		/*
+		 * Compute interaction between wake particles
+		 */
+		virtual void interact();
 
 	private:
 		//pawan::__wake *_W;	[>!< Pointer to wake object <]
@@ -43,7 +50,7 @@ class __interaction{
 		virtual void interact(__wake *W1, __wake *W2);
 
 	public:
-		size_t _size;		/*!< Size of state vector */
+		//size_t _size;		[>!< Size of state vector <]
 		
 		//! Constructor
 		/*
@@ -65,12 +72,12 @@ class __interaction{
 		 * Deletes particles
 		 */
 		~__interaction() = default;
-		
-		//! Interact
+
+		//! Solve system
 		/*
-		 * Compute interaction between wake particles
+		 * Solve system
 		 */
-		void interact();
+		virtual void solve();
 
 		//! Write all wake data
 		/*
