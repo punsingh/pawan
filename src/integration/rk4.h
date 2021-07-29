@@ -22,7 +22,7 @@ class __rk4 : public __integration{
 		 * \param	S	Interaction solver
 		 * \param	state	System state
 		 */
-		virtual void step(const double &dt,__interaction *S, gsl_vector *state);
+		virtual void step(const double &dt,__system *S, gsl_vector *state);
 
 	public:
 		//! Constructor

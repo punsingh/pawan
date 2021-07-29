@@ -9,7 +9,7 @@
 
 pawan::__rk4::__rk4(const double &t, const size_t &n):__integration(t,n){}
 
-void pawan::__rk4::step(const double &dt, __interaction *S, gsl_vector* states){
+void pawan::__rk4::step(const double &dt, __system *S, gsl_vector* states){
 	gsl_vector *x1 = gsl_vector_calloc(states->size);
 	gsl_vector *x2 = gsl_vector_calloc(states->size);
 	gsl_vector *x3 = gsl_vector_calloc(states->size);
@@ -22,7 +22,7 @@ void pawan::__rk4::step(const double &dt, __interaction *S, gsl_vector* states){
 	
 	// k1 = f(x,t)
 	S->setStates(states);
-	S->interact();
+	S->solve();
 	S->getRates(k1);
 	
 	// x1 = x + 0.5*dt*k1
@@ -32,7 +32,7 @@ void pawan::__rk4::step(const double &dt, __interaction *S, gsl_vector* states){
 	
 	// k2 = f(x1,t+0.5*dt)
 	S->setStates(x1);
-	S->interact();
+	S->solve();
 	S->getRates(k2);
 	
 	// x2 = x1 + 0.5*dt*dx2
@@ -42,7 +42,7 @@ void pawan::__rk4::step(const double &dt, __interaction *S, gsl_vector* states){
 	
 	// k3 = f(x2,t+0.5*dt)
 	S->setStates(x2);
-	S->interact();
+	S->solve();
 	S->getRates(k3);
 	
 	// x3 = x2 + dt*k3
@@ -52,7 +52,7 @@ void pawan::__rk4::step(const double &dt, __interaction *S, gsl_vector* states){
 	
 	// k4 = f(x3,t+dt)
 	S->setStates(x3);
-	S->interact();
+	S->solve();
 	S->getRates(k4);
 
 	gsl_vector_add(k1,k4);
