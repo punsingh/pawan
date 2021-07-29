@@ -13,7 +13,7 @@
 #include <gsl/gsl_vector.h>
 #include "src/utils/print_utils.h"
 #include "src/utils/timing_utils.h"
-#include "src/interaction/interaction.h"
+#include "src/system/system.h"
 #include "src/io/io.h"
 
 namespace pawan{
@@ -31,7 +31,7 @@ class __integration{
 		 * \param	S	Interaction solver
 		 * \param	state	System state
 		 */
-		virtual void step(const double &dt,__interaction *S, gsl_vector *state);
+		virtual void step(const double &dt,__system *S, gsl_vector *state);
 
 	public:
 		//! Constructor
@@ -54,7 +54,7 @@ class __integration{
 		 * \param	S	Interaction solver
 		 * \param	IO	Input/Output file writing
 		 */
-		void integrate(__interaction *S, __io *IO);
+		void integrate(__system *S, __io *IO);
 };
 }
 #endif
