@@ -8,13 +8,12 @@
 #include "wake.h"
 
 void pawan::__wake::create_particles(const int &n){
-	_numDimensions = 3;
 	_numParticles = n;
-	_size = 2*_numParticles*_numDimensions;
-	_position = gsl_matrix_alloc(_numParticles,_numDimensions);
-	_velocity = gsl_matrix_alloc(_numParticles,_numDimensions);
-	_vorticity = gsl_matrix_alloc(_numParticles,_numDimensions);
-	_retvorcity = gsl_matrix_alloc(_numParticles,_numDimensions);
+	_size = 2*_numParticles*3;
+	_position = gsl_matrix_alloc(_numParticles,3);
+	_velocity = gsl_matrix_alloc(_numParticles,3);
+	_vorticity = gsl_matrix_alloc(_numParticles,3);
+	_retvorcity = gsl_matrix_alloc(_numParticles,3);
 	_radius = gsl_vector_alloc(_numParticles);
 	_volume = gsl_vector_alloc(_numParticles);
 	_birthstrength = gsl_vector_alloc(_numParticles);
@@ -23,7 +22,7 @@ void pawan::__wake::create_particles(const int &n){
 pawan::__wake::__wake(){
 	create_particles(1);
 	for(int i = 0; i<_numParticles; ++i){
-		for(int j = 0; j<_numDimensions; ++j){
+		for(int j = 0; j<3; ++j){
 			gsl_matrix_set(_position,i,j,0.0);
 			gsl_matrix_set(_vorticity,i,j,0.0);
 		}
@@ -81,20 +80,20 @@ void pawan::__wake::read(__io *IO){
 
 void pawan::__wake::setStates(const gsl_vector *state){
 	//OUT("setStates");
-	size_t np = state->size/2/_numDimensions;
-	size_t matrixsize = np*_numDimensions;
-	gsl_matrix_const_view pos = gsl_matrix_const_view_vector(state,np,_numDimensions);
+	size_t np = state->size/2/3;
+	size_t matrixsize = np*3;
+	gsl_matrix_const_view pos = gsl_matrix_const_view_vector(state,np,3);
 	gsl_matrix_memcpy(_position,&pos.matrix);
 	gsl_vector_const_view vor = gsl_vector_const_subvector(state,matrixsize,matrixsize);
-	gsl_matrix_const_view vrx = gsl_matrix_const_view_vector(&vor.vector,np,_numDimensions);
+	gsl_matrix_const_view vrx = gsl_matrix_const_view_vector(&vor.vector,np,3);
 	gsl_matrix_memcpy(_vorticity,&vrx.matrix);
 }
 
 void pawan::__wake::getRates(gsl_vector *rate){
 	//OUT("getRates");
 	for(size_t i = 0; i<_numParticles; ++i){
-		for(size_t j = 0; j<_numDimensions; ++j){
-			size_t ind = i*_numDimensions + j;
+		for(size_t j = 0; j<3; ++j){
+			size_t ind = i*3 + j;
 			gsl_vector_set(rate,ind,gsl_matrix_get(_velocity,i,j));
 			ind += _size/2;
 			gsl_vector_set(rate,ind,gsl_matrix_get(_retvorcity,i,j));
@@ -105,8 +104,8 @@ void pawan::__wake::getRates(gsl_vector *rate){
 void pawan::__wake::getStates(gsl_vector *state){
 	//OUT("getStates");
 	for(size_t i = 0; i<_numParticles; ++i){
-		for(size_t j = 0; j<_numDimensions; ++j){
-			size_t ind = i*_numDimensions + j;
+		for(size_t j = 0; j<3; ++j){
+			size_t ind = i*3 + j;
 			gsl_vector_set(state,ind,gsl_matrix_get(_position,i,j));
 			ind += _size/2;
 			gsl_vector_set(state,ind,gsl_matrix_get(_vorticity,i,j));

@@ -1,6 +1,6 @@
 /*! PArticle Wake ANalysis
  * \file wake.h
- * \brief Header for WAKE lass
+ * \brief Header for WAKE class
  *
  * @author Puneet Singh
  * @date 03/28/2021
@@ -32,7 +32,6 @@ class __wake{
 	public:
 		size_t _size;			/*!< Size of state vector */
 		size_t _numParticles;		/*!< Number of vortex particles */
-		size_t _numDimensions;		/*!< Number of dimensions */
 		gsl_matrix *_position;		/*!< Particle positions */
 		gsl_matrix *_velocity;		/*!< Particle velocity */
 		gsl_matrix *_vorticity;		/*!< Particle vorticities */
