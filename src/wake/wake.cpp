@@ -10,13 +10,13 @@
 void pawan::__wake::create_particles(const int &n){
 	_numParticles = n;
 	_size = 2*_numParticles*3;
-	_position = gsl_matrix_alloc(_numParticles,3);
-	_velocity = gsl_matrix_alloc(_numParticles,3);
-	_vorticity = gsl_matrix_alloc(_numParticles,3);
-	_retvorcity = gsl_matrix_alloc(_numParticles,3);
-	_radius = gsl_vector_alloc(_numParticles);
-	_volume = gsl_vector_alloc(_numParticles);
-	_birthstrength = gsl_vector_alloc(_numParticles);
+	_position = gsl_matrix_calloc(_numParticles,3);
+	_velocity = gsl_matrix_calloc(_numParticles,3);
+	_vorticity = gsl_matrix_calloc(_numParticles,3);
+	_retvorcity = gsl_matrix_calloc(_numParticles,3);
+	_radius = gsl_vector_calloc(_numParticles);
+	_volume = gsl_vector_calloc(_numParticles);
+	_birthstrength = gsl_vector_calloc(_numParticles);
 }
 
 pawan::__wake::__wake(){
