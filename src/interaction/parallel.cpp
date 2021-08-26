@@ -83,3 +83,54 @@ void pawan::__parallel::interact(__wake *W1, __wake *W2){
 		gsl_vector_set(&da_src.vector,2,qz + gsl_vector_get(&da_src.vector,2));
 	}
 }
+
+void pawan::__parallel::influence(__wake *W){
+	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
+		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
+		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
+		double s_src = gsl_vector_get(W->_radius,i_src);
+		double kx = 0.0, ky = 0.0, kz = 0.0;
+		#pragma omp parallel for reduction(+:kx,ky,kz)
+		for(size_t i_trg = i_src + 1; i_trg < W->_numParticles; ++i_trg){
+			gsl_vector_const_view r_trg = gsl_matrix_const_row(W->_position,i_trg);
+			gsl_vector_const_view a_trg= gsl_matrix_const_row(W->_vorticity,i_trg);
+			gsl_vector_view k_trg = gsl_matrix_row(W->_vorticityfield,i_trg);
+			double s_trg = gsl_vector_get(W->_radius,i_trg);
+			double kx_s = 0.0, ky_s = 0.0, kz_s = 0.0;
+			INFLUENCE(s_src,s_trg,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,&k_trg.vector,kx_s,ky_s,kz_s);
+			kx += kx_s;
+			ky += ky_s;
+			kz += kz_s;
+		}
+		gsl_vector_view k_src = gsl_matrix_row(W->_retvorcity,i_src);
+		gsl_vector_set(&k_src.vector,0,kx + gsl_vector_get(&k_src.vector,0));
+		gsl_vector_set(&k_src.vector,1,ky + gsl_vector_get(&k_src.vector,1));
+		gsl_vector_set(&k_src.vector,2,kz + gsl_vector_get(&k_src.vector,2));
+	}
+}
+
+void pawan::__parallel::influence(__wake *W1, __wake *W2){
+	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
+		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
+		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
+		double s_src = gsl_vector_get(W1->_radius,i_src);
+		double kx = 0.0, ky = 0.0, kz = 0.0;
+		#pragma omp parallel for reduction(+:kx,ky,kz)
+		for(size_t i_trg = 0; i_trg < W2->_numParticles; ++i_trg){
+			gsl_vector_const_view r_trg = gsl_matrix_const_row(W2->_position,i_trg);
+			gsl_vector_const_view a_trg = gsl_matrix_const_row(W2->_vorticity,i_trg);
+			gsl_vector_view k_trg = gsl_matrix_row(W2->_vorticityfield,i_trg);
+			double s_trg = gsl_vector_get(W2->_radius,i_trg);
+			double v_trg = gsl_vector_get(W2->_volume,i_trg);
+			double kx_s = 0.0, ky_s = 0.0, kz_s = 0.0;
+			INFLUENCE(s_src,s_trg,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,&k_trg.vector,kx_s,ky_s,kz_s);
+			kx += kx_s;
+			ky += ky_s;
+			kz += kz_s;
+		}
+		gsl_vector_view k_src = gsl_matrix_row(W1->_velocity,i_src);
+		gsl_vector_set(&k_src.vector,0,kx + gsl_vector_get(&k_src.vector,0));
+		gsl_vector_set(&k_src.vector,1,ky + gsl_vector_get(&k_src.vector,1));
+		gsl_vector_set(&k_src.vector,2,kz + gsl_vector_get(&k_src.vector,2));
+	}
+}

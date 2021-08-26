@@ -42,6 +42,38 @@ void pawan::__interaction::interact(){
 	}
 }
 
+void pawan::__interaction::influence(__wake *W){
+	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
+		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
+		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
+		gsl_vector_view k_src = gsl_matrix_row(W->_vorticityfield,i_src);
+		double s_src = gsl_vector_get(W->_radius,i_src);
+		for(size_t i_trg = i_src + 1; i_trg < W->_numParticles; ++i_trg){
+			gsl_vector_const_view r_trg = gsl_matrix_const_row(W->_position,i_trg);
+			gsl_vector_const_view a_trg= gsl_matrix_const_row(W->_vorticity,i_trg);
+			gsl_vector_view k_trg = gsl_matrix_row(W->_vorticityfield,i_trg);
+			double s_trg = gsl_vector_get(W->_radius,i_trg);
+			INFLUENCE(s_src,s_trg,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,&k_src.vector,&k_trg.vector);
+		}
+	}
+}
+
+void pawan::__interaction::influence(__wake *W1, __wake *W2){
+	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
+		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
+		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
+		gsl_vector_view k_src = gsl_matrix_row(W1->_vorticityfield,i_src);
+		double s_src = gsl_vector_get(W1->_radius,i_src);
+		for(size_t i_trg = 0; i_trg < W2->_numParticles; ++i_trg){
+			gsl_vector_const_view r_trg = gsl_matrix_const_row(W2->_position,i_trg);
+			gsl_vector_const_view a_trg = gsl_matrix_const_row(W2->_vorticity,i_trg);
+			gsl_vector_view k_trg = gsl_matrix_row(W2->_vorticityfield,i_trg);
+			double s_trg = gsl_vector_get(W2->_radius,i_trg);
+			INFLUENCE(s_src,s_trg,&r_src.vector,&r_trg.vector,&a_src.vector,&a_trg.vector,&k_src.vector,&k_trg.vector);
+		}
+	}
+}
+
 void pawan::__interaction::interact(__wake *W){
 	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);

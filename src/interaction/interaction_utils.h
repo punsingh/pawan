@@ -10,9 +10,18 @@
 #ifndef WAKE_UTILS_H_
 #define WAKE_UTILS_H_
 
+#define HIGHORDER 1 
+#define GAUSSIAN 0
+
 #include "src/utils/gsl_utils.h"
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_vector.h>
+
+#if HIGHORDER
+#include "src/interaction/gaussian.h"
+#elif GAUSSIAN
+#include "src/interaction/highorder.h"
+#endif
 
 /*
  *
@@ -20,32 +29,23 @@
  *
  */
 
-/*! \fn inline void KERNEL(const double &rho, const double &sigma, double &q, double &F, double &Z)
- * \brief Compute velocity induced by vortex particle kernel
- * \param	rho		double distance
- * \param	sigma		double radius
- * \param	q		double Q
- * \param	F		double F
- * \param	Z		double Z
+/*! \fn inline void VORTICITY(const double &kernel, const gsl_vector *strength, gsl_vector *vorticity )
+ * \brief Compute vorticity induced by vortex particle kernel
+ * \param	kernel		double
+ * \param	strength	gsl vector particle vorticity strength
+ * \param	vorticity	gsl vector output vorticity
  */
-inline void KERNEL(	const double &rho, 
-			const double &sigma, 
-			double &q, 
-			double &F, 
-			double &Z){
-	double rho_bar = rho/sigma;
-	double sig3 = sigma*sigma*sigma;
-	double phi = 0.25*M_1_PI*erf(M_SQRT1_2*rho_bar)/sig3;
-	Z = 0.5*exp(-0.5*rho_bar*rho_bar)/sig3/pow(M_PI,1.5);
-	q = (phi/rho_bar - Z)/gsl_pow_2(rho_bar);
-	F = (Z - 3*q)/gsl_pow_2(rho);
-
+inline void VORTICITY(	const double &kernel, 
+			const gsl_vector *strength, 
+			gsl_vector *vorticity ){
+	gsl_vector_memcpy(vorticity,strength);
+	gsl_blas_dscal(kernel,vorticity);
 };
 
 /*! \fn inline void VELOCITY(const double &kernel, const gsl_vector *vorticity, const gsl_vector *displacement, gsl_vector *velocity )
  * \brief Compute velocity induced by vortex particle kernel
  * \param	kernel		double
- * \param	vorticity	gsl vector vorticity
+ * \param	vorticity	gsl vector particle vorticity strength
  * \param	displacement	gsl vector displacement between particle and point
  * \param	velocity	gsl vector output velocity
  */
@@ -145,8 +145,8 @@ inline void DIFFUSION(	const double &nu,
 	gsl_vector_free(dva);
 };
 
-/*! \fn inline void INTERACT(const double &q, const double &F, const gsl_vector *source_vorticity, const gsl_vector *target_vorticity, const gsl_vector *displacement, gsl_vector *retvorcity )
- * \brief Compute rate of change of vorticity induced by vortex particle kernel
+/*! \fn inline void INTERACT(const double &nu, const double &sigma, const gsl_vector *r_source, const gsl_vector *r_target, const gsl_vector *a_source, const gsl_vector *a_target, const double &v_source, const double &v_target, gsl_vector *dr_source, gsl_vector *dr_target, gsl_vector *da_source, gsl_vector *da_target)
+ * \brief Compute interaction between two vortex particles
  * \param	nu			double viscosity
  * \param	sigma			double smoothing radius
  * \param	r_source		gsl vector source position
@@ -205,7 +205,7 @@ inline void INTERACT(	const double &nu,
 };
 
 /*! \fn inline void INTERACT(const double &nu,const double &s_source,const double &s_target,const gsl_vector *r_source,const gsl_vector *r_target,const gsl_vector *a_source,const gsl_vector *a_target, const double &v_source, const double &v_target, gsl_vector *dr_source, gsl_vector *dr_target,gsl_vector *da_source, gsl_vector *da_target)
- * \brief Compute rate of change of vorticity induced by vortex particle kernel
+ * \brief Compute interaction between two vortex particles
  * \param	nu			double viscosity
  * \param	s_source		double smoothing radius of source
  * \param	s_target		double smoothing radius of target
@@ -267,7 +267,7 @@ inline void INTERACT(	const double &nu,
 };
 
 /*! \fn inline void INTERACT(const double &nu,const double &s_source,const double &s_target,const gsl_vector *r_source,const gsl_vector *r_target,const gsl_vector *a_source,const gsl_vector *a_target, const double &v_source, const double &v_target, gsl_vector *dr_source, gsl_vector *da_source, r *da_target)
- * \brief Compute rate of change of vorticity induced by vortex particle kernel
+ * \brief Compute interaction between two vortex particles
  * \param	nu			double viscosity
  * \param	s_source		double smoothing radius of source
  * \param	s_target		double smoothing radius of target
@@ -338,6 +338,116 @@ inline void INTERACT(	const double &nu,
 	gsl_vector_free(dr);
 	gsl_vector_free(da);
 	gsl_vector_free(displacement);
+};
+
+/*! \fn inline void INFLUENCE(const double &sigma, const gsl_vector *r_source, const gsl_vector *r_target, const gsl_vector *a_source, const gsl_vector *a_target, gsl_vector *k_source, gsl_vector *k_target)
+ * \brief Compute interaction between two vortex particles
+ * \param	sigma			double smoothing radius
+ * \param	r_source		gsl vector source position
+ * \param	r_target		gsl vector target position
+ * \param	a_source		gsl vector source vorticity strength
+ * \param	a_target		gsl vector target vorticity strength
+ * \param	k_source		gsl vector source vorticity field
+ * \param	k_target		gsl vector target vorticity field
+ */
+inline void INFLUENCE(	const double &sigma,
+			const gsl_vector *r_source, 
+			const gsl_vector *r_target, 
+			const gsl_vector *a_source, 
+			const gsl_vector *a_target, 
+			gsl_vector *k_source, 
+			gsl_vector *k_target){
+	// Kernel Computation
+	gsl_vector *displacement = gsl_vector_calloc(3);
+	gsl_vector_memcpy(displacement,r_target);
+	gsl_vector_sub(displacement,r_source);
+	double rho = gsl_blas_dnrm2(displacement);
+	double Z = ZETASIG(rho,sigma);
+	// Vorticity computation
+	gsl_vector *dk = gsl_vector_calloc(3);
+	VORTICITY(Z,a_source,dk);
+	// Target
+	gsl_vector_add(k_target,dk);
+	// Source
+	VORTICITY(Z,a_target,dk);
+	gsl_vector_add(k_source,dk);
+	// Clean up
+	gsl_vector_free(dk);
+	gsl_vector_free(displacement);
+};
+
+/*! \fn inline void INFLUENCE(const double &s_source, const double &s_target, const gsl_vector *r_source, const gsl_vector *r_target, const gsl_vector *a_source, const gsl_vector *a_target, gsl_vector *k_source, gsl_vector *k_target)
+ * \brief Compute interaction between two vortex particles
+ * \param	s_source		double smoothing radius of source
+ * \param	s_target		double smoothing radius of target
+ * \param	r_source		gsl vector source position
+ * \param	r_target		gsl vector target position
+ * \param	a_source		gsl vector source vorticity strength
+ * \param	a_target		gsl vector target vorticity strength
+ * \param	k_source		gsl vector source vorticity field
+ * \param	k_target		gsl vector target vorticity field
+ */
+inline void INFLUENCE(	const double &s_source,
+			const double &s_target,
+			const gsl_vector *r_source, 
+			const gsl_vector *r_target, 
+			const gsl_vector *a_source, 
+			const gsl_vector *a_target, 
+			gsl_vector *k_source, 
+			gsl_vector *k_target){
+	double sigma = sqrt(gsl_pow_2(s_source) + gsl_pow_2(s_target))/2.0;
+	// Kernel Computation
+	gsl_vector *displacement = gsl_vector_calloc(3);
+	gsl_vector_memcpy(displacement,r_target);
+	gsl_vector_sub(displacement,r_source);
+	double rho = gsl_blas_dnrm2(displacement);
+	double Z = ZETASIG(rho,sigma);
+	// Vorticity computation
+	gsl_vector *dk = gsl_vector_calloc(3);
+	VORTICITY(Z,a_source,dk);
+	// Target
+	gsl_vector_add(k_target,dk);
+	// Source
+	VORTICITY(Z,a_target,dk);
+	gsl_vector_add(k_source,dk);
+	// Clean up
+	gsl_vector_free(dk);
+	gsl_vector_free(displacement);
+};
+
+
+inline void INFLUENCE(	const double &s_source,
+			const double &s_target,
+			const gsl_vector *r_source, 
+			const gsl_vector *r_target, 
+			const gsl_vector *a_source, 
+			const gsl_vector *a_target, 
+			gsl_vector *k_target, 
+			double &kx_source,
+			double &ky_source,
+			double &kz_source){
+	double sigma = sqrt(gsl_pow_2(s_source) + gsl_pow_2(s_target))/2.0;
+	// Kernel Computation
+	gsl_vector *displacement = gsl_vector_calloc(3);
+	gsl_vector_memcpy(displacement,r_target);
+	gsl_vector_sub(displacement,r_source);
+	double rho = gsl_blas_dnrm2(displacement);
+	double Z = ZETASIG(rho,sigma);
+	// Vorticity computation
+	gsl_vector *dk = gsl_vector_calloc(3);
+	VORTICITY(Z,a_source,dk);
+	// Target
+	gsl_vector_add(k_target,dk);
+	// Source
+	VORTICITY(Z,a_target,dk);
+	// Source
+	kx_source = gsl_vector_get(dk,0);
+	ky_source = gsl_vector_get(dk,1);
+	kz_source = gsl_vector_get(dk,2);
+	// Clean up
+	gsl_vector_free(dk);
+	gsl_vector_free(displacement);
+	
 };
 
 #endif

@@ -35,6 +35,21 @@ class __parallel : public __interaction{
 		 * \param	W2	Wake 2 object pointer
 		 */
 		virtual void interact(__wake *W1, __wake *W2);
+		
+		//! Influence
+		/*
+		 * Computes vorticity field of particles of a single wake object
+		 * \param	W	Wake object pointer
+		 */
+		virtual void influence(__wake *W);
+		
+		//! Influence
+		/*
+		 * Computes vorticity field of particles of two wake objects
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual void influence(__wake *W1, __wake *W2);
 
 	public:
 		

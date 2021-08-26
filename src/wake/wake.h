@@ -39,6 +39,7 @@ class __wake{
 		gsl_vector *_radius;		/*!< Particle smoothing radii */
 		gsl_vector *_volume;		/*!< Particle volumes */
 		gsl_vector *_birthstrength;	/*!< Strengths of particles at birth */
+		gsl_matrix *_vorticityfield;	/*!< Vorticity field */
 		
 		//! Constructor
 		/*
