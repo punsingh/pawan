@@ -17,6 +17,7 @@ void pawan::__wake::create_particles(const int &n){
 	_radius = gsl_vector_calloc(_numParticles);
 	_volume = gsl_vector_calloc(_numParticles);
 	_birthstrength = gsl_vector_calloc(_numParticles);
+	_vorticityfield = gsl_matrix_calloc(_numParticles,3);
 }
 
 pawan::__wake::__wake(){
@@ -25,6 +26,7 @@ pawan::__wake::__wake(){
 		for(int j = 0; j<3; ++j){
 			gsl_matrix_set(_position,i,j,0.0);
 			gsl_matrix_set(_vorticity,i,j,0.0);
+			gsl_matrix_set(_vorticityfield,i,j,0.0);
 		}
 		gsl_vector_set(_radius,i,1.0);
 		gsl_vector_set(_volume,i,1.0);
@@ -40,6 +42,7 @@ pawan::__wake::~__wake(){
 	gsl_vector_free(_radius);
 	gsl_vector_free(_volume);
 	gsl_vector_free(_birthstrength);
+	gsl_matrix_free(_vorticityfield);
 }
 
 void pawan::__wake::print(){
@@ -49,6 +52,7 @@ void pawan::__wake::print(){
 	OUT("_radius",_radius);
 	OUT("_volume",_volume);
 	OUT("_birthstrength",_birthstrength);
+	OUT("_vorticityfield",_vorticityfield);
 }
 
 void pawan::__wake::save(FILE *f){
@@ -58,6 +62,7 @@ void pawan::__wake::save(FILE *f){
 	gsl_vector_fwrite(f,_radius);
 	gsl_vector_fwrite(f,_volume);
 	gsl_vector_fwrite(f,_birthstrength);
+	//gsl_matrix_fwrite(f,_vorticityfield);
 }
 
 void pawan::__wake::write(FILE *f){
@@ -75,6 +80,7 @@ void pawan::__wake::read(__io *IO){
 	gsl_vector_fread(f,_radius);
 	gsl_vector_fread(f,_volume);
 	gsl_vector_fread(f,_birthstrength);
+	//gsl_matrix_fread(f,_vorticityfield);
 	fclose(f);
 }
 
