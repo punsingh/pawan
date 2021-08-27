@@ -415,7 +415,6 @@ inline void INFLUENCE(	const double &s_source,
 	gsl_vector_free(displacement);
 };
 
-
 inline void INFLUENCE(	const double &s_source,
 			const double &s_target,
 			const gsl_vector *r_source, 
@@ -448,6 +447,21 @@ inline void INFLUENCE(	const double &s_source,
 	gsl_vector_free(dk);
 	gsl_vector_free(displacement);
 	
+};
+
+inline void SELFINFLUENCE(	const double &s_target,
+				const gsl_vector *r_target, 
+				const gsl_vector *a_target, 
+				gsl_vector *k_target){
+	// Kernel Computation
+	double Z = ZETASIG(0.0,s_target);
+	// Vorticity computation
+	gsl_vector *dk = gsl_vector_calloc(3);
+	VORTICITY(Z,a_target,dk);
+	// Target
+	gsl_vector_add(k_target,dk);
+	// Clean up
+	gsl_vector_free(dk);
 };
 
 #endif

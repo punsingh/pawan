@@ -48,6 +48,7 @@ void pawan::__interaction::influence(__wake *W){
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
 		gsl_vector_view k_src = gsl_matrix_row(W->_vorticityfield,i_src);
 		double s_src = gsl_vector_get(W->_radius,i_src);
+		SELFINFLUENCE(s_src,&r_src.vector,&a_src.vector,&k_src.vector);
 		for(size_t i_trg = i_src + 1; i_trg < W->_numParticles; ++i_trg){
 			gsl_vector_const_view r_trg = gsl_matrix_const_row(W->_position,i_trg);
 			gsl_vector_const_view a_trg= gsl_matrix_const_row(W->_vorticity,i_trg);

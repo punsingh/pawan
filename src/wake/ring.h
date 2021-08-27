@@ -25,6 +25,12 @@ class __ring : public __wake{
 		
 		//! Constructor for thin vortex ring
 		/*
+		 * Creates default
+		 */
+		__ring();
+		
+		//! Constructor for thin vortex ring
+		/*
 		 * Creates thin vortex ring
 		 * \param gamma		Strength of ring	
 		 * \param radius	Ring radius

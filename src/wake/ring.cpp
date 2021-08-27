@@ -7,6 +7,18 @@
  */
 #include "ring.h"
 
+pawan::__ring::__ring(){
+	create_particles(1);
+	gsl_matrix_set_zero(_position);
+	gsl_matrix_set_zero(_velocity);
+	gsl_matrix_set_zero(_vorticity);
+	gsl_matrix_set_zero(_retvorcity);
+	gsl_vector_set_zero(_radius);
+	gsl_vector_set_zero(_volume);
+	gsl_vector_set_zero(_birthstrength);
+	gsl_matrix_set_zero(_vorticityfield);
+}
+
 pawan::__ring::__ring(const double &gamma, const double &radius, const double &core, const int &nRadial){
 	create_particles(nRadial);
 	double dPsi = 2.0*M_PI/nRadial; 		/*!< Azimuthal step size */ 
