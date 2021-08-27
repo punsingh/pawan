@@ -34,9 +34,6 @@
 # YCM Project Config Files
 *.ycm_extra_conf.py
 
-# VIM session files
-*.vim
-
 # files generated using pawan output
 *.mp4
 *.gif
