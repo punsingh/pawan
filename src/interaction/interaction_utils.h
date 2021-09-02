@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef WAKE_UTILS_H_
-#define WAKE_UTILS_H_
+#ifndef INTERACTION_UTILS_H_
+#define INTERACTION_UTILS_H_
 
 #include "src/utils/gsl_utils.h"
 #include <gsl/gsl_blas.h>
@@ -57,8 +57,8 @@ inline void VELOCITY(	const double &kernel,
 	gsl_blas_dscal(kernel,velocity);
 };
 
-/*! \fn inline void VORSTRETCH(const double &q, const double &F, const gsl_vector *source_vorticity, const gsl_vector *target_vorticity, const gsl_vector *displacement, gsl_vector *retvorcity )
- * \brief Compute rate of change of vorticity due to vorterx stretching
+/*!
+ * Compute rate of change of vorticity due to vorterx stretching
  * \param	q			q/rho kernel
  * \param	F			F kernel
  * \param	source_vorticity	gsl vector source vorticity
@@ -66,6 +66,7 @@ inline void VELOCITY(	const double &kernel,
  * \param	displacement		gsl vector displacement between source and target
  * \param	retvorcity		gsl vector output rate of change of vorticity
  */
+
 inline void VORSTRETCH(	const double &q, 
 			const double &F, 
 			const gsl_vector *source_vorticity, 
@@ -340,4 +341,95 @@ inline void INTERACT(	const double &nu,
 	gsl_vector_free(displacement);
 };
 
+inline void la_arr_alloc( double **uu, const size_t &row_size, const size_t &col_size){
+    uu = new double* [row_size];
+    printf("--------------------------------memory for each col \n");
+    for ( size_t row = 0; row < row_size; ++row ) {
+        uu[row] = new double[col_size];
+        printf("--------------------------------memory for each row \n");
+    }
+};
+
+
+inline double** la_arr_calloc( const size_t &row_size, const size_t &col_size){
+    double** uu = new double* [row_size];
+    for ( size_t row = 0; row < row_size; ++row ) {
+        uu[row] = new double[col_size];
+        for (size_t col = 0; col < col_size; ++col) {
+            uu[row][col] = 0.0;
+        }
+    return uu;
+    }
+};
+
+
+
+inline void la_arr_gslalloc( double **uu, const gsl_matrix *vv,  const size_t &row_size, const size_t &col_size){
+    for ( size_t row = 0; row < row_size; ++row ) {
+        for (size_t col = 0; col < col_size; ++col) {
+            uu[row][col] = gsl_matrix_get(vv, row, col);
+        }
+    }
+};
+
+inline void la_arr_dealloc( double **uu,  size_t &row_size){
+    for (size_t row = 0; row < row_size; ++row) {
+        delete[] uu[row];
+    }
+    delete[] uu;
+};
+
+inline void set_gsl_drow(double *u, const double **vv, size_t &row, size_t &col_size){
+    for(size_t col = 0; col<col_size; ++col){
+        u[col] = vv[row][col];
+    }
+};
+
+inline void printVec(const double *uu, size_t &col_size){
+    for(size_t col = 0; col<col_size; ++col) {
+        printf("\t%f", uu[col]);
+    }
+    printf("\n");
+};
+
+
+inline void la_arr_print( double **uu,  size_t &row_size, size_t &col_size){
+    for ( size_t row = 0; row < row_size; ++row ) {
+        for (size_t col = 0; col < col_size; ++col) {
+            printf("\t%f", uu[row][col]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+};
+
+inline void la_arr_calloc( double *uu, const size_t &row_size, const size_t &col_size){
+    std::cout << row_size  << std::endl;
+    std::cout << col_size  << std::endl;
+    //uu = (double*) malloc(sizeof(double)*row_size*col_size);
+    for ( size_t row = 0; row < row_size; ++row ) {
+        for (size_t col = 0; col < col_size; ++col) {
+            uu[row*col_size + col] = 1.0;
+            std::cout << uu  << std::endl;
+        }
+
+    }
+};
+
+inline void la_arr_gslalloc1( double *uu, const gsl_matrix *vv,  const size_t &row_size, const size_t &col_size){
+    for ( size_t row = 0; row < row_size; ++row ) {
+        for (size_t col = 0; col < col_size; ++col) {
+            uu[row*col_size + col] = gsl_matrix_get(vv, row, col);
+        }
+    }
+};
+inline void la_arr_print1( double *uu,  size_t &row_size, size_t &col_size){
+    for ( size_t row = 0; row < row_size; ++row ) {
+        for (size_t col = 0; col < col_size; ++col) {
+            printf("\t%f", uu[row*col_size + col]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+};
 #endif
