@@ -45,3 +45,6 @@
 *.plt
 *.eps
 *.pdf
+
+# Makefile
+Makefile
