@@ -30,7 +30,7 @@ class __wake{
 		virtual void create_particles(const int &n);
 
 	public:
-		size_t _size;			/*!< Size of state vector */
+		size_t _size;			/*!< Size of state (and rate) vector containing _position and _vorticity (and _velocity and _retvorticity */
 		size_t _numParticles;		/*!< Number of vortex particles */
 		size_t _numDimensions;		/*!< Number of dimensions */
 		gsl_matrix *_position;		/*!< Particle positions */

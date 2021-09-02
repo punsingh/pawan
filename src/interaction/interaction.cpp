@@ -27,8 +27,10 @@ void pawan::__interaction::interact(){
 	for(auto &w : _W){
 		gsl_matrix_set_zero(w->_velocity);
 		gsl_matrix_set_zero(w->_retvorcity);
+//        std::cout << "interaction.cpp------gsl_set_matrix_zero" << std::endl;
 	}
 	for(auto &w : _W){
+//        std::cout << "-----------------------------------" << std::endl;
 		interact(w);
 	}
 	for(size_t i = 0; i<_nWake; ++i){
@@ -39,6 +41,7 @@ void pawan::__interaction::interact(){
 }
 
 void pawan::__interaction::interact(__wake *W){
+//    std::cout << "interaction.cpp------now going into __interaction::interact(w)" << std::endl;
 	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
@@ -59,6 +62,7 @@ void pawan::__interaction::interact(__wake *W){
 }
 
 void pawan::__interaction::interact(__wake *W1, __wake *W2){
+//    std::cout << "interaction.cpp------now going into __interaction::interact(w, w)" << std::endl;
 	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
@@ -79,7 +83,8 @@ void pawan::__interaction::interact(__wake *W1, __wake *W2){
 }
 
 void pawan::__interaction::write(FILE *f){
-	fwrite(&_nWake,sizeof(size_t),1,f);	
+	fwrite(&_nWake,sizeof(size_t),1,f);
+//    std::cout << "interaction.cpp------writing to .wake file" << std::endl;
 	for(auto &w: _W){
 		w->write(f);
 	}

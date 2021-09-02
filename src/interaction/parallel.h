@@ -26,7 +26,7 @@ class __parallel : public __interaction{
 		 * Compute interaction between particles of a single wake object
 		 * \param	W	Wake object pointer
 		 */
-		virtual void interact(__wake *W);
+		virtual void interact(__wake *W);                           //there is no need to call derived class methods as virtual (remove them everywhere?)
 		
 		//! Interact
 		/*

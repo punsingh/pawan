@@ -10,6 +10,7 @@
 void pawan::__wake::create_particles(const int &n){
 	_numDimensions = 3;
 	_numParticles = n;
+    //std::cout << "n = " << n << std::endl;
 	_size = 2*_numParticles*_numDimensions;
 	_position = gsl_matrix_alloc(_numParticles,_numDimensions);
 	_velocity = gsl_matrix_alloc(_numParticles,_numDimensions);
@@ -18,6 +19,7 @@ void pawan::__wake::create_particles(const int &n){
 	_radius = gsl_vector_alloc(_numParticles);
 	_volume = gsl_vector_alloc(_numParticles);
 	_birthstrength = gsl_vector_alloc(_numParticles);
+    std::cout << "wake.cpp-------------__wake::create_particles(&n) has been executed" << std::endl;
 }
 
 pawan::__wake::__wake(){
@@ -52,7 +54,7 @@ void pawan::__wake::print(){
 	OUT("_birthstrength",_birthstrength);
 }
 
-void pawan::__wake::save(FILE *f){
+void pawan::__wake::save(FILE *f){                                  // this is perhaps a deprecated function
 	fwrite(&_numParticles,sizeof(size_t),1,f);	
 	gsl_matrix_fwrite(f,_position);
 	gsl_matrix_fwrite(f,_vorticity);
@@ -61,8 +63,10 @@ void pawan::__wake::save(FILE *f){
 	gsl_vector_fwrite(f,_birthstrength);
 }
 
+/*writing out number of particles, position, vorticity, radius at each time step*/
 void pawan::__wake::write(FILE *f){
-	fwrite(&_numParticles,sizeof(size_t),1,f);	
+	fwrite(&_numParticles,sizeof(size_t),1,f);  //writing out the number of particles at each time step
+    std::cout << "wake.cpp------writing to .wake file" << std::endl;
 	gsl_matrix_fwrite(f,_position);
 	gsl_matrix_fwrite(f,_vorticity);
 	gsl_vector_fwrite(f,_radius);

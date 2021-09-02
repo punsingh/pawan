@@ -26,7 +26,7 @@ class __integration{
 		
 		//! Time step
 		/*
-		 * Advance one time step
+		 * Advance one time step (Euler integration)
 		 * \param	dt	Time step
 		 * \param	S	Interaction solver
 		 * \param	state	System state

@@ -120,6 +120,7 @@ class plotWake:
         plt.show()
         if savefile:
             ani.save(savefile,writer='ffmpeg',fps=2, bitrate = 1000)
+            print('Animation (3 view) saved')
 
     def plotAnimate(self,savefile=""):
         """ 
@@ -133,9 +134,9 @@ class plotWake:
         # ax.set_xlim(self.plot_limits['x'])
         # ax.set_ylim(self.plot_limits['y'])
         # ax.set_zlim(self.plot_limits['z'])
-        ax.set_xlim([-2,2])
-        ax.set_ylim([-2,2])
-        ax.set_zlim([-2,2])
+        ax.set_xlim([-20,20])
+        ax.set_ylim([-20,20])
+        ax.set_zlim([-20,20])
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
@@ -155,6 +156,7 @@ class plotWake:
         plt.show()
         if savefile:
             ani.save(savefile,writer='ffmpeg',fps=2, bitrate = 1000)
+            print('Animation (Isometric 3D view) saved')
 
     def setColors(self):
         norm = matplotlib.colors.Normalize()
@@ -177,8 +179,8 @@ class plotWake:
         # print(self.birthstrength)
 
 if __name__ == "__main__":
-    parser = ap.ArgumentParser()
-    parser.add_argument("filename", nargs='?', default="data/temp.wake", help=".wake file")
+    parser = ap.ArgumentParser(description='Generate visualisation of the wake')
+    parser.add_argument("filename", nargs='?', default="../data/temp.wake", help=".wake file (../data/temp.wake used as default)")
     parser.add_argument("-a","--animate", help="Show animation", action="store_true")
     parser.add_argument("-a3","--animate3view", help="Show 3 view animation", action="store_true")
     parser.add_argument("-s","--save", help="Save animation file", action="store_true")
