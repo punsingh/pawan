@@ -6,30 +6,57 @@
  * @date 04/24/2021
  */
 #include "parallel.h"
+//#include "testcuda1.h"
+
+
+inline void la_arr_gslalloc_reverse( double **uu, gsl_matrix *vv,  const size_t &row_size, const size_t &col_size){
+    for ( size_t row = 0; row < row_size; ++row ) {
+        for (size_t col = 0; col < col_size; ++col) {
+            gsl_matrix_set(vv, row, col, uu[row][col]);
+        }
+    }
+};
 
 pawan::__parallel::__parallel(__wake *W):__interaction(W){}
 pawan::__parallel::__parallel(__wake *W1, __wake *W2):__interaction(W1,W2){}
 
 void pawan::__parallel::interact(__wake *W){
+    //testcuda_call();
+
     double** Wpos_arr =  new double* [W->_numParticles];
+    double** Wvor_arr =  new double* [W->_numParticles];
+    double** Wretvor_arr =  new double* [W->_numParticles];
+    double* Wrad_arr =  new double [W->_numParticles];
+    double* Wvol_arr =  new double [W->_numParticles];
     for ( size_t row = 0; row < W->_numParticles; ++row ) {
         Wpos_arr[row] = new double[W->_numDimensions];
+        Wvor_arr[row] = new double[W->_numDimensions];
+        Wretvor_arr[row] = new double[W->_numDimensions];
     }
 
-    la_arr_gslalloc(Wpos_arr,W->_position,W->_numParticles,W->_numDimensions);
-    la_arr_print(Wpos_arr, W->_numParticles, W->_numDimensions);
-
+    la_gslalloc(Wpos_arr,W->_position,W->_numParticles,W->_numDimensions);
+    la_print(Wpos_arr, W->_numParticles, W->_numDimensions);
+/*
+    printf("printing one way---------------------------------- \n");
     printf("%f \n",*(*(Wpos_arr)));
     printf("%f \n",*(*(Wpos_arr+1)));
     printf("%f \n",*(*(Wpos_arr+2)));
 
+    printf("printing another way---------------------------------- \n");
     printf("%f \n",*(*Wpos_arr));
     printf("%f \n",*(*Wpos_arr+1));
     printf("%f \n",*(*Wpos_arr+2));
-    for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
-        //double *r_src_vec =  ;
+*/
+     for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
+/*
+        double *r_src_vec = la_gsl_matrix_const_row(Wpos_arr,i_src,W->_numDimensions);
+        double *a_src_vec = la_gsl_matrix_const_row(Wvor_arr,i_src,W->_numDimensions);
+        double s_src = la_gsl_vector_get(Wrad_arr,i_src);
+        double v_src = la_gsl_vector_get(Wvol_arr,i_src);
         //set_gsl_drow(r_src_vec, Wpos_arr, i_src, W->_numParticles);
-        //printVec(r_src_vec, W->_numParticles);
+        //la_printVec(r_src_vec, W->_numParticles);
+*/
+
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
 		double s_src = gsl_vector_get(W->_radius,i_src);
@@ -64,7 +91,7 @@ void pawan::__parallel::interact(__wake *W){
 		gsl_vector_set(&da_src.vector,1,qy + gsl_vector_get(&da_src.vector,1));
 		gsl_vector_set(&da_src.vector,2,qz + gsl_vector_get(&da_src.vector,2));
 	}
-    la_arr_dealloc(Wpos_arr,W->_numParticles);
+    la_dealloc(Wpos_arr,W->_numParticles);
 }
 
 /*!
