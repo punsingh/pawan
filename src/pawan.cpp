@@ -28,8 +28,8 @@ int main(int argc, char* argv[]){
     int inv = 0; //0 for test and 1 for debug output
 	if (inv==0){
         //pawan::__wake *W = new pawan::__square(2.,10.0,0.1,80);
-        pawan::__wake *W = new pawan::__square(2.,5.0,0.1,80);
-        //pawan::__wake *W = new pawan::__ring(1.0,5.0,0.1,80);
+        //pawan::__wake *W = new pawan::__square(2.,5.0,0.1,80);
+        pawan::__wake *W = new pawan::__ring(1.0,5.0,0.1,80);
         std::cout << "pawan.cpp------------translating created object" << std::endl;
         W->translate(2,-1);
         pawan::__interaction *S = new pawan::__parallel(W);          //is there a specific reason this a pointer of base class???

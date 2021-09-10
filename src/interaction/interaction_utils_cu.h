@@ -16,20 +16,7 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_vector.h>
 
-/*
-inline void la_gslalloc_reverse( double **uu, gsl_matrix *vv,  const size_t &row_size, const size_t &col_size){
-    for ( size_t row = 0; row < row_size; ++row ) {
-        for (size_t col = 0; col < col_size; ++col) {
-            gsl_matrix_set(vv, row, col, uu[row][col]);
-        }
-    }
-};
-inline void la_gslalloc_reverse(const double *u, gsl_vector *v,  const size_t &row_size){
-    for (size_t col = 0; col < row_size; ++col) {
-        gsl_vector_set(v, col, u[col]);
-    }
-};
-*/
+
 //__host__ __device__
 void KERNEL(	const double &rho,
                                     const double &sigma,
@@ -46,25 +33,15 @@ void KERNEL(	const double &rho,
 
 //__host__ __device__
 void VELOCITY(	const double &kernel,
-
                                       const double *vorticity,
                                       const double *displacement,
                                      double *velocity
-/*
-                                      const gsl_vector *vorticity_gsl,
-                                      const gsl_vector *displacement_gsl,
-                                      gsl_vector *velocity_gsl
-*/){
-/*
-    double* vorticity = la_gslalloc(vorticity_gsl,3);//----------------------
-    double* displacement = la_gslalloc(displacement_gsl,3);//----------------------
-    double* velocity = la_gslalloc(velocity_gsl,3);//----------------------
-*/
+){
+
     int ndim = 3;
 
     la_gsl_cross(vorticity,displacement,velocity,ndim);
     la_gsl_blas_dscal(kernel,velocity,ndim);
-//    la_gslalloc_reverse(velocity,velocity_gsl,ndim);//-----------------
 };
 
 /*!
@@ -80,23 +57,12 @@ void VELOCITY(	const double &kernel,
 //__host__ __device__
 inline void VORSTRETCH(	const double &q,
                                                const double &F,
-
                                                const double *source_vorticity,
                                                const double *target_vorticity,
                                                const double *displacement,
                                                double *retvorcity
-/*
-                                               const gsl_vector *source_vorticity_gsl,
-                                               const gsl_vector *target_vorticity_gsl,
-                                               const gsl_vector *displacement_gsl,
-                                               gsl_vector *retvorcity_gsl
-*/                           ){
+                           ){
 
-/*
-    double* source_vorticity = la_gslalloc(source_vorticity_gsl,3);//----------------------
-    double* target_vorticity = la_gslalloc(target_vorticity_gsl,3);//----------------------
-    double* displacement = la_gslalloc(displacement_gsl,3);//----------------------
-*/
     int ndim = 3;
 
     //trgXsrc = a_target x a_source
@@ -114,21 +80,10 @@ inline void VORSTRETCH(	const double &q,
     double *stretch = new double[ndim];
     la_gsl_vector_memcpy(stretch,displacement, ndim);
     la_gsl_blas_dscal(F*roaxa,stretch,ndim);
-/*
-    double *retvorcity = new double[ndim];//-----------------------------------
-    for(size_t col = 0; col<ndim; ++col){//-----------------------------------
-        retvorcity[col] = 0;//-----------------------------------
-    }//-----------------------------------
-*/
+
     la_gsl_vector_add(retvorcity,crossed,ndim);
     la_gsl_vector_add(retvorcity,stretch,ndim);
-/*
-    gsl_vector *retvorcity_gsl_tmp = gsl_vector_calloc(ndim);//-----------------------------------
-    la_gslalloc_reverse(retvorcity,retvorcity_gsl_tmp,ndim);//-----------------
-    gsl_vector_add(retvorcity_gsl,retvorcity_gsl_tmp);//-----------------
-    delete[] retvorcity;//-----------------------------------------------
-    gsl_vector_free(retvorcity_gsl_tmp);//-----------------------
-*/
+
     delete[] trgXsrc;
     delete[] crossed;
     delete[] stretch;
@@ -152,15 +107,10 @@ inline void DIFFUSION(	const double &nu,
                                               const double &Z,
                                               const double *source_vorticity,
                                               const double *target_vorticity,
-                                              //const gsl_vector *source_vorticity_gsl,
-                                              //const gsl_vector *target_vorticity_gsl,
                                               const double &source_volume,
                                               const double &target_volume,
                                              double *retvorcity
-                                             // gsl_vector *retvorcity
                                               ){
-//    double* source_vorticity = la_gslalloc(source_vorticity_gsl,3);//----------------------
-//    double* target_vorticity = la_gslalloc(target_vorticity_gsl,3);//----------------------
 
     int ndim = 3;
 
@@ -183,22 +133,16 @@ inline void DIFFUSION(	const double &nu,
 
     // da = da + dva
     la_gsl_vector_add(retvorcity,dva,3);
- /*
-    gsl_vector *dva_gsl = gsl_vector_calloc(ndim);//---------------------------
-    la_gslalloc_reverse(dva, dva_gsl, ndim);//---------------------------
-    gsl_vector_add(retvorcity,dva_gsl);//---------------------------
-    gsl_vector_free(dva_gsl);//---------------------------
- */
+
     delete[] va21;
     delete[] va12;
     delete[] dva;
-
 };
 
 //__host__
 
 
-inline void INTERACT_(	const double &nu,
+inline void INTERACT(	const double &nu,
                          const double &s_source,
                          const double &s_target,
                          const double *r_source,
@@ -215,158 +159,49 @@ inline void INTERACT_(	const double &nu,
                          double &qx_source,
                          double &qy_source,
                          double &qz_source){
-/*
-    double* r_source = la_gslalloc(r_source_gsl,3);//----------------------
-    double* r_target = la_gslalloc(r_target_gsl,3);//----------------------
-    double* a_source = la_gslalloc(a_source_gsl,3);//----------------------
-    double* a_target = la_gslalloc(a_target_gsl,3);//----------------------
-*/
-    // Kernel Computation
-int ndim = 3;
-
-double *displacement = new double[ndim];
-la_gsl_vector_memcpy(displacement,r_target,ndim);
-    la_gsl_vector_sub(displacement,r_source,ndim);
-    double rho = la_gsl_blas_dnrm2(displacement,ndim);
-    double q = 0.0, F = 0.0, Z = 0.0;
-    double sigma = sqrt(la_gsl_pow_2(s_source) + la_gsl_pow_2(s_target))/2.0;
-// Velocity computation
-    double *dr = new double[ndim];
-    for(size_t col = 0; col<ndim; ++col){
-        dr[col] = 0;
-    }
-// Target
-    KERNEL(rho,sigma,q,F,Z);
-    VELOCITY(q,a_source,displacement,dr);
-    la_gsl_vector_add(dr_target,dr, ndim);
-/*
-    gsl_vector *dr_gsl_tmp = gsl_vector_calloc(ndim);//-----------------------------------
-    la_gslalloc_reverse(dr,dr_gsl_tmp,ndim);//-----------------
-    gsl_vector_add(dr_target_gsl,dr_gsl_tmp);//-----------------
-    gsl_vector_free(dr_gsl_tmp);//-----------------------
-*/
-// Source
-    VELOCITY(-q,a_target,displacement,dr);
-    vx_source = dr[0];
-    vy_source = dr[1];
-    vz_source = dr[2];
-
-    double *da = new double [ndim];
-    for(size_t col = 0; col<ndim; ++col){
-        da[col] = 0;
-    }
-    VORSTRETCH(q,F,a_source,a_target,displacement,da);
-    DIFFUSION(nu,sigma,Z,a_source,a_target,v_source,v_target,da);
-    la_gsl_vector_add(da_target,da,ndim);
-// Target
-// Source
-    qx_source = -da[0];
-    qy_source = -da[1];
-    qz_source = -da[2];
-/*
-    gsl_vector *da_gsl = gsl_vector_calloc(ndim);//-----------------------------------
-    la_gslalloc_reverse(da,da_gsl,ndim);//-----------------
-    gsl_vector_add(da_target_gsl,da_gsl);//-----------------
-    gsl_vector_free(da_gsl);//-----------------------
-*/
-    delete[] dr;
-    delete[] da;
-    delete[] displacement;
-
-/*
-    delete[] r_source;//-----------------------
-    delete[] r_target;//-----------------------
-    delete[] a_source;//-----------------------
-    delete[] a_target;//-----------------------
-*/
-
-
-};
-
-
-inline void INTERACT(	const double &nu,
-                  const double &s_source,
-                  const double &s_target,
-                  const gsl_vector *r_source_gsl,
-                  const gsl_vector *r_target_gsl,
-                  const gsl_vector *a_source_gsl,
-                  const gsl_vector *a_target_gsl,
-                  const double &v_source,
-                  const double &v_target,
-                  gsl_vector *dr_target_gsl,
-                  gsl_vector *da_target_gsl,
-                  double &vx_source,
-                  double &vy_source,
-                  double &vz_source,
-                  double &qx_source,
-                  double &qy_source,
-                  double &qz_source){
-
-    double* r_source = la_gslalloc(r_source_gsl,3);//----------------------
-    double* r_target = la_gslalloc(r_target_gsl,3);//----------------------
-    double* a_source = la_gslalloc(a_source_gsl,3);//----------------------
-    double* a_target = la_gslalloc(a_target_gsl,3);//----------------------
-
-    // Kernel Computation
     int ndim = 3;
 
+    // Kernel Computation
     double *displacement = new double[ndim];
     la_gsl_vector_memcpy(displacement,r_target,ndim);
     la_gsl_vector_sub(displacement,r_source,ndim);
     double rho = la_gsl_blas_dnrm2(displacement,ndim);
     double q = 0.0, F = 0.0, Z = 0.0;
     double sigma = sqrt(la_gsl_pow_2(s_source) + la_gsl_pow_2(s_target))/2.0;
-// Velocity computation
+
+    // Velocity computation
     double *dr = new double[ndim];
     for(size_t col = 0; col<ndim; ++col){
         dr[col] = 0;
     }
-// Target
+    // Target
     KERNEL(rho,sigma,q,F,Z);
     VELOCITY(q,a_source,displacement,dr);
-
-    gsl_vector *dr_gsl_tmp = gsl_vector_calloc(ndim);//-----------------------------------
-    la_gslalloc_reverse(dr,dr_gsl_tmp,ndim);//-----------------
-    gsl_vector_add(dr_target_gsl,dr_gsl_tmp);//-----------------
-    gsl_vector_free(dr_gsl_tmp);//-----------------------
-
-// Source
+    la_gsl_vector_add(dr_target,dr, ndim);
+    // Source
     VELOCITY(-q,a_target,displacement,dr);
     vx_source = dr[0];
     vy_source = dr[1];
     vz_source = dr[2];
 
+    // Rate of change of vorticity computation
     double *da = new double [ndim];
     for(size_t col = 0; col<ndim; ++col){
         da[col] = 0;
     }
     VORSTRETCH(q,F,a_source,a_target,displacement,da);
     DIFFUSION(nu,sigma,Z,a_source,a_target,v_source,v_target,da);
-// Target
-// Source
+    // Target
+    la_gsl_vector_add(da_target,da,ndim);
+    // Source
     qx_source = -da[0];
     qy_source = -da[1];
     qz_source = -da[2];
 
-    gsl_vector *da_gsl_tmp = gsl_vector_calloc(ndim);//-----------------------------------
-    la_gslalloc_reverse(da,da_gsl_tmp,ndim);//-----------------
-    gsl_vector_add(da_target_gsl,da_gsl_tmp);//-----------------
-    gsl_vector_free(da_gsl_tmp);//-----------------------
-
     delete[] dr;
     delete[] da;
     delete[] displacement;
-
-
-    delete[] r_source;//-----------------------
-    delete[] r_target;//-----------------------
-    delete[] a_source;//-----------------------
-    delete[] a_target;//-----------------------
-
-
-
 };
-
 
 
 /*
