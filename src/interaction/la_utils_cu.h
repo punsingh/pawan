@@ -11,6 +11,10 @@
 #ifndef LA_UTILS_CU_H
 #define LA_UTILS_CU_H
 
+#include <float.h>
+
+#define SOFTENING       DBL_EPSILON
+
 inline void la_alloc( double **uu, const size_t &row_size, const size_t &col_size){
     uu = new double* [row_size];
     for ( size_t row = 0; row < row_size; ++row ) {
@@ -95,6 +99,15 @@ inline void la_gsl_blas_ddot(const double *u, const double *v, double *result, c
     for(size_t col = 0; col<row_size; ++col){
         *result = *result + u[col]*v[col];
     }
+};
+
+inline double la_gsl_blas_dnrm2_soft(const double *u,const size_t &row_size){
+    double result = 0;
+    for(size_t col = 0; col<row_size; ++col){
+        result = result + u[col]*u[col];
+    }
+    result = sqrt(result+DBL_EPSILON);
+    return result;
 };
 
 inline double la_gsl_blas_dnrm2(const double *u,const size_t &row_size){
@@ -185,9 +198,9 @@ inline void la_print( double **uu,  size_t &row_size, size_t &col_size){
     printf("\n");
 };
 
-inline void la_print( double *u,  size_t &row_size){
+inline void la_print(const double *u,  size_t &row_size){
     for (size_t col = 0; col < row_size; ++col) {
-        printf("\t%f", u[col]);
+        printf("\t%.16f", u[col]);
     }
     printf("\n");
 };

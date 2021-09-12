@@ -5,16 +5,17 @@
 #ifndef INTERACTION_UTILS_CU_H
 #define INTERACTION_UTILS_CU_H
 
-#define CUDART_PI       3.14159265358979323846	/* pi */
-#define CUDART_1_PI     0.31830988618379067154  /* 1/pi */
-#define CUDART_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
-
 #include <math.h>    //comment this when running CUDA
 #include "la_utils_cu.h"
 #include "math_utils_cu.h"
+//#include "cuda_utils_cu.h"
 #include "src/utils/gsl_utils.h"
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_vector.h>
+
+#define CUDART_PI       3.14159265358979323846	/* pi */
+#define CUDART_1_PI     0.31830988618379067154  /* 1/pi */
+#define CUDART_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 
 
 //__host__ __device__
@@ -139,9 +140,59 @@ inline void DIFFUSION(	const double &nu,
     delete[] dva;
 };
 
+
+
+//__global__
+inline void INTERACT(	const double &nu,
+                         const double &s_source,
+                         const double &s_target,
+                         const double *r_source,
+                         const double *r_target,
+                         const double *a_source,
+                         const double *a_target,
+                         const double &v_source,
+                         const double &v_target,
+                         double *dr_target,
+                         double *da_target){
+    size_t ndim = 3;
+
+    // Kernel Computation
+    double *displacement = new double[ndim];
+    la_gsl_vector_memcpy(displacement,r_target,ndim);
+    la_gsl_vector_sub(displacement,r_source,ndim);
+    double rho = la_gsl_blas_dnrm2_soft(displacement,ndim);
+    double q = 0.0, F = 0.0, Z = 0.0;
+    double sigma = sqrt(la_gsl_pow_2(s_source) + la_gsl_pow_2(s_target))/2.0;
+
+    // Velocity computation
+    double *dr = new double[ndim];
+    for(size_t col = 0; col<ndim; ++col){
+        dr[col] = 0;
+    }
+    // Target
+    KERNEL(rho,sigma,q,F,Z);
+    VELOCITY(q,a_source,displacement,dr);
+    la_gsl_vector_add(dr_target,dr, ndim);
+    // Source
+//    VELOCITY(-q,a_target,displacement,dr);
+
+    // Rate of change of vorticity computation
+    double *da = new double [ndim];
+    for(size_t col = 0; col<ndim; ++col){
+        da[col] = 0;
+    }
+    VORSTRETCH(q,F,a_source,a_target,displacement,da);
+    DIFFUSION(nu,sigma,Z,a_source,a_target,v_source,v_target,da);
+    // Target
+    la_gsl_vector_add(da_target,da,ndim);
+
+    delete[] dr;
+    delete[] da;
+    delete[] displacement;
+};
+
+/*
 //__host__
-
-
 inline void INTERACT(	const double &nu,
                          const double &s_source,
                          const double &s_target,
@@ -202,111 +253,6 @@ inline void INTERACT(	const double &nu,
     delete[] da;
     delete[] displacement;
 };
-
-
-/*
-__global__ void INTERACT(	const double &nu,
-                             const double &s_source,
-                             const double &s_target,
-                             const gsl_vector *r_source,
-                             const gsl_vector *r_target,
-                             const gsl_vector *a_source,
-                             const gsl_vector *a_target,
-                             const double &v_source,
-                             const double &v_target,
-                             gsl_vector *dr_target,
-                             gsl_vector *da_target,
-                             double &vx_source,
-                             double &vy_source,
-                             double &vz_source,
-                             double &qx_source,
-                             double &qy_source,
-                             double &qz_source){
-
-
-
-
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < n) {
-        float i_vx = 0.0f; float i_vy = 0.0f; float i_vz = 0.0f;
-        float i_qx = 0.0f; float i_qy = 0.0f; float i_qz = 0.0f;
-
-        for (int block_num = 0; block_num < gridDim.x; block_num++) {
-            __shared__ float3 j_pos[BLOCK_SIZE];
-            __shared__ float3 j_rad[BLOCK_SIZE];
-            __shared__ float3 j_vol[BLOCK_SIZE];
-            __shared__ float3 j_vor[BLOCK_SIZE];
-
-            float4 tpos = p[block_num * blockDim.x + threadIdx.x];
-            j_pos[threadIdx.x] = make_float3(tpos.x, tpos.y, tpos.z);
-            __syncthreads();
-
-#pragma unroll
-            for (int j = 0; j < BLOCK_SIZE; j++) {
-                float dx = spos[j].x - p[i].x;
-                float dy = spos[j].y - p[i].y;
-                float dz = spos[j].z - p[i].z;
-                float distSqr = dx*dx + dy*dy + dz*dz + SOFTENING;
-                float invDist = rsqrtf(distSqr);
-                float invDist3 = invDist * invDist * invDist;
-
-                Fx += dx * invDist3; Fy += dy * invDist3; Fz += dz * invDist3;
-            }
-            __syncthreads();
-        }
-        Wvel[i] += i_vx; Wvel[i] += i_vy; Wvel[i] += i_vz;
-        Wretvor[i] += q_vx; Wretvor[i] += q_vy; Wretvor[i] += q_vz;
-    }
-}
-
-
-// Kernel Computation
-gsl_vector *displacement = gsl_vector_calloc(3);
-gsl_vector_memcpy(displacement,r_target);
-gsl_vector_sub(displacement,r_source);
-double rho = gsl_blas_dnrm2(displacement);
-double q = 0.0, F = 0.0, Z = 0.0;
-double sigma = sqrt(gsl_pow_2(s_source) + gsl_pow_2(s_target))/2.0;
-
-// Velocity computation
-gsl_vector *dr = gsl_vector_calloc(3);
-// Target
-KERNEL(rho,sigma,q,F,Z);
-VELOCITY(q,a_source,displacement,dr);
-gsl_vector_add(dr_target,dr);
-// Source
-VELOCITY(-q,a_target,displacement,dr);
-vx_source = gsl_vector_get(dr,0);
-vy_source = gsl_vector_get(dr,1);
-vz_source = gsl_vector_get(dr,2);
-
-// Rate of change of vorticity computation
-gsl_vector *da = gsl_vector_calloc(3);
-VORSTRETCH(q,F,a_source,a_target,displacement,da);
-DIFFUSION(nu,sigma,Z,a_source,a_target,v_source,v_target,da);
-// Target
-gsl_vector_add(da_target,da);
-// Source
-qx_source = -gsl_vector_get(da,0);
-qy_source = -gsl_vector_get(da,1);
-qz_source = -gsl_vector_get(da,2);
-
-// Clean up
-gsl_vector_free(dr);
-gsl_vector_free(da);
-gsl_vector_free(displacement);
-};
-
-
 */
-
-
-
-
-
-
-
-
-
 
 #endif //INTERACTION_UTILS_CU_H

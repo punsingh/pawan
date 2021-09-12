@@ -30,7 +30,6 @@ void pawan::__interaction::interact(){
 //        std::cout << "interaction.cpp------gsl_set_matrix_zero" << std::endl;
 	}
 	for(auto &w : _W){
-//        std::cout << "-----------------------------------" << std::endl;
 		interact(w);
 	}
 	for(size_t i = 0; i<_nWake; ++i){
@@ -41,7 +40,7 @@ void pawan::__interaction::interact(){
 }
 
 void pawan::__interaction::interact(__wake *W){
-//    std::cout << "interaction.cpp------now going into __interaction::interact(w)" << std::endl;
+    std::cout << "-----------------------------------pawan::__interaction::interact(__wake *W)" << std::endl;
 	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);

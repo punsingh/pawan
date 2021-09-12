@@ -21,8 +21,11 @@ void pawan::__rk4::step(const double &dt, __interaction *S, gsl_vector* states){
 	gsl_vector_memcpy(x1,states);
 	
 	// k1 = f(x,t)
+//    std::cout << "-----------------------------------S->setStates(states);" << std::endl;
 	S->setStates(states);
+//    std::cout << "-----------------------------------S->interact();" << std::endl;
 	S->interact();
+//    std::cout << "-----------------------------------S->getRates(k1);" << std::endl;
 	S->getRates(k1);
 	
 	// x1 = x + 0.5*dt*k1
