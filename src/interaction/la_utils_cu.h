@@ -11,198 +11,241 @@
 #ifndef LA_UTILS_CU_H
 #define LA_UTILS_CU_H
 
+#include <stdio.h>
 #include <float.h>
 
 #define SOFTENING       DBL_EPSILON
 
-inline void la_alloc( double **uu, const size_t &row_size, const size_t &col_size){
-    uu = new double* [row_size];
-    for ( size_t row = 0; row < row_size; ++row ) {
-        uu[row] = new double[col_size];
-    }
-};
-
-inline double** la_calloc( const size_t &row_size, const size_t &col_size){
-    double** uu = new double* [row_size];
-    for ( size_t row = 0; row < row_size; ++row ) {
-        uu[row] = new double[col_size];
-        for (size_t col = 0; col < col_size; ++col) {
-            uu[row][col] = 0.0;
-        }
-        return uu;
-    }
-};
-
-/*!
- *allocates a matrix array and copies elements of gsl matrix to it
- * (every la_gslalloc() should be followed by la_gsldealloc())
- */
-inline double** la_gslalloc( const gsl_matrix *vv, const size_t &col_size,  const size_t &row_size){
-    double** uu =  new double* [col_size];
+__host__ __device__
+double4* la_to_d4alloc(double **uu, const size_t &col_size, const size_t &row_size){
+    int bytes = col_size*sizeof(double4);
+    double *buf = (double*)malloc(bytes);
+    double4 *v = (double4*)buf;
     for ( size_t row = 0; row < col_size; ++row ) {
-        uu[row] = new double[row_size];
+        if(row_size == 3) {
+            v[row].x = uu[row][0];
+            v[row].y = uu[row][1];
+            v[row].z = uu[row][2];
+            v[row].w = 0.0;
+        }else if(row_size == 2){
+            v[row].x = uu[row][0];
+            v[row].y = uu[row][1];
+            v[row].z = 0.0;
+            v[row].w = 0.0;
+        }
     }
+    return v;
+};
+
+__host__ __device__
+double4* la_to_d4alloc(double *u, const size_t &col_size){
+    int bytes = col_size*sizeof(double4);
+    double *buf = (double*)malloc(bytes);
+    double4 *v = (double4*)buf;
     for ( size_t row = 0; row < col_size; ++row ) {
-        for (size_t col = 0; col < row_size; ++col) {
-            uu[row][col] = gsl_matrix_get(vv, row, col);
+        v[row].x = u[row];
+        v[row].y = 0.0;
+        v[row].z = 0.0;
+        v[row].w = 0.0;
+    }
+    return v;
+};
+
+__host__ __device__
+double4* la_d4calloc(const size_t &col_size){
+    int bytes = col_size*sizeof(double4);
+    double *buf = (double*)malloc(bytes);
+    double4 *v = (double4*)buf;
+    for ( size_t row = 0; row < col_size; ++row ) {
+            v[row].x = 0.0;
+            v[row].y = 0.0;
+            v[row].z = 0.0;
+            v[row].w = 0.0;
+    }
+    return v;
+};
+
+double4* la_to_d4alloc_reverse(double **uu,double4 *v, const size_t &col_size, const size_t &row_size){
+    for ( size_t row = 0; row < col_size; ++row ) {
+        if(row_size == 3) {
+            uu[row][0] = v[row].x;
+            uu[row][1] = v[row].y;
+            uu[row][2] = v[row].z;
+        }else if(row_size == 2){
+            uu[row][0] = v[row].x;
+            uu[row][1] = v[row].y;
         }
     }
-    return uu;
+    return v;
 };
 
-inline double* la_gslalloc( const gsl_vector *v,  const size_t &row_size){
-    double* u =  new double [row_size];
-    for (size_t col = 0; col < row_size; ++col) {
-        u[col] = gsl_vector_get(v, col);
-    }
-    return u;
+__device__
+void la_d4_cross(const double4 *a, const double4 *b, double4 *c){
+    double ax = a->x;
+    double ay = a->y;
+    double az = a->z;
+    double bx = b->x;
+    double by = b->y;
+    double bz = b->z;
+    c->x = ay*bz-az*by;
+    c->y = az*bx-ax*bz;
+    c->z = ax*by-ay*bx;
+    c->w = 0.0;
 };
 
-inline void la_gslalloc_reverse( double **uu, gsl_matrix *vv,  const size_t &row_size, const size_t &col_size){
-    for ( size_t row = 0; row < row_size; ++row ) {
-        for (size_t col = 0; col < col_size; ++col) {
-            gsl_matrix_set(vv, row, col, uu[row][col]);
-        }
-    }
-};
-inline void la_gslalloc_reverse(const double *u, gsl_vector *v,  const size_t &row_size){
-    for (size_t col = 0; col < row_size; ++col) {
-        gsl_vector_set(v, col, u[col]);
-    }
+__device__
+void la_d4_blas_ddot(const double4 *u, const double4 *v, double *result){
+    *result = u->x*v->x + u->y*v->y + u->z*v->z + u->w*v->w;
 };
 
-inline void la_dealloc( double **uu,  size_t &col_size){
-    for (size_t row = 0; row < col_size; ++row) {
-        delete[] uu[row];
-    }
-    delete[] uu;
-};
-
-inline void la_dealloc( double *u){
-    delete[] u;
-};
-inline void la_gsl_cross(const double *a, const double *b, double *c, const size_t &row_size){//note that this works only for 3 dim vectors??
-    if(row_size==3){
-        double ax = a[0];
-        double ay = a[1];
-        double az = a[2];
-        double bx = b[0];
-        double by = b[1];
-        double bz = b[2];
-        c[0] = ay*bz-az*by;
-        c[1] = az*bx-ax*bz;
-        c[2] = ax*by-ay*bx;
-    }
-};
-
-inline void la_gsl_blas_ddot(const double *u, const double *v, double *result, const size_t &row_size){
-    for(size_t col = 0; col<row_size; ++col){
-        *result = *result + u[col]*v[col];
-    }
-};
-
-inline double la_gsl_blas_dnrm2_soft(const double *u,const size_t &row_size){
-    double result = 0;
-    for(size_t col = 0; col<row_size; ++col){
-        result = result + u[col]*u[col];
-    }
+__device__
+double la_d4_blas_dnrm2_soft(const double4 *u){
+    double result = 0.0;
+    result = u->x*u->x + u->y*u->y + u->z*u->z + u->w*u->w;
     result = sqrt(result+DBL_EPSILON);
     return result;
 };
 
-inline double la_gsl_blas_dnrm2(const double *u,const size_t &row_size){
-    double result = 0;
-    for(size_t col = 0; col<row_size; ++col){
-        result = result + u[col]*u[col];
-    }
-    result = sqrt(result);
-    return result;
+__device__
+void la_d4_blas_dscal(double alpha, double4 *u){
+    u->x = alpha*u->x;
+    u->y = alpha*u->y;
+    u->z = alpha*u->z;
+    u->w = alpha*u->w;
 };
 
-inline void la_gsl_blas_dscal(const double &alpha, double *u, const size_t &row_size){
-    for(size_t col = 0; col<row_size; ++col){
-        u[col] = alpha*u[col];
-    }
-};
-
-inline void la_gsl_vector_add( double *u,const double *v, const size_t &row_size){
-    for(size_t col = 0; col<row_size; ++col){
-        u[col] = u[col]+v[col];
+__device__
+void la_d4_blas_dscal(double alpha, double4 *uu, const size_t &col_size){
+    for ( size_t row = 0; row < col_size; ++row ) {
+        uu[row].x = alpha * uu[row].x;
+        uu[row].y = alpha * uu[row].y;
+        uu[row].z = alpha * uu[row].z;
+        uu[row].w = alpha * uu[row].w;
     }
 };
 
-inline void la_gsl_vector_sub( double *u,const double *v, const size_t &row_size){
-    for(size_t col = 0; col<row_size; ++col){
-        u[col] = u[col]-v[col];
-    }
+__device__
+void la_d4_blas_dscal(const int i, double alpha, double4 *uu){
+    uu[i].x = alpha*uu[i].x;
+    uu[i].y = alpha*uu[i].y;
+    uu[i].z = alpha*uu[i].z;
+    uu[i].w = alpha*uu[i].w;
 };
 
-inline double la_gsl_pow_2(const double w){
+__device__
+void la_d4_set(int i, double4 *uu,const double4 *v){
+    uu[i].x = v->x;
+    uu[i].y = v->y;
+    uu[i].z = v->z;
+    uu[i].w = v->w;
+};
+//#####################################################################################
+__device__
+void la_d4_add( double4 *u,const double4 *v){
+    u->x = u->x + v->x;
+    u->y = u->y + v->y;
+    u->z = u->z + v->z;
+    u->w = u->w + v->w;
+};
+
+__device__
+void la_d4_add(int i, double4 *uu,const double4 *v){
+    uu[i].x = uu[i].x + v->x;
+    uu[i].y = uu[i].y + v->y;
+    uu[i].z = uu[i].z + v->z;
+    uu[i].w = uu[i].w + v->w;
+};
+
+__device__
+void la_d4_add(double4 *uu, const double4 *vv, const size_t &col_size){
+    for ( size_t row = 0; row < col_size; ++row ) {
+        uu[row].x = uu[row].x + vv[row].x;
+        uu[row].y = uu[row].y + vv[row].y;
+        uu[row].z = uu[row].z + vv[row].z;
+        uu[row].w = uu[row].w + vv[row].w;
+    }
+};
+//#####################################################################################
+
+/*
+__device__
+void la_d4_add(const int i, double4 *uu,const double4 *ww){
+    uu[i].x = uu[i].x + ww[i].x;
+    uu[i].y = uu[i].y + ww[i].y;
+    uu[i].z = uu[i].z + ww[i].z;
+    uu[i].w = uu[i].w + ww[i].w;
+};
+*/
+
+__device__
+void la_d4_sub( double4 *u,const double4 *v){
+    u->x = u->x - v->x;
+    u->y = u->y - v->y;
+    u->z = u->z - v->z;
+    u->w = u->w - v->w;
+};
+
+__device__
+double la_d_pow_2(const double w){
     return w*w;
 };
 
-inline void la_gsl_vector_memcpy( double *u,const double *v, const size_t &row_size){
-    for(size_t col = 0; col<row_size; ++col){
-        u[col] = v[col];
-    }
+__device__
+void la_d4_memcpy(double4 *u,const double4 *v){
+    u->x = v->x;
+    u->y = v->y;
+    u->z = v->z;
+    u->w = v->w;
 };
-/*
-inline double* la_gsl_matrix_row(const double **uu,const size_t &row_num,const size_t &row_size){
-    double *v = uu;
-    for(size_t col = 0; col<row_size; ++col){
-        v[col] = uu[row_num][col];
-    }
+
+__device__
+const double4 la_d4_matrix_row(double4 *uu,const size_t &row_num) {
+    const double4 v={uu[row_num].x, uu[row_num].y, uu[row_num].z, uu[row_num].w};
     return v;
 };
-*/
 
-inline double* la_gsl_matrix_row(double **uu,const size_t &row_num) {
-    double *v = uu[row_num];
-    return v;
-}
+__device__
+double la_d4_vector_get(double4 *uu,const size_t &col_num){
+    return uu[col_num].x;
+};
 
-inline double la_gsl_vector_get(const double *u,const size_t &col_num){
+__device__
+double la_d_vector_get(const double *u,const size_t &col_num){
     return u[col_num];
 };
 
-inline void la_gsl_vector_set(double *u, const size_t &col_num, const double &v){
-    u[col_num] = v;
-};
-/*
-inline void la_gsl_vector_memcpy(double *u, double *v, const size_t &row_num){
-    return u[row_num];
-};
-*/
-inline void set_gsl_drow(double *u, const double **vv, size_t &row, size_t &col_size){
-    for(size_t col = 0; col<col_size; ++col){
-        u[col] = vv[row][col];
+__device__
+void la_d4_sub(double4 *uu, const double4 *vv, const size_t &col_size){
+    for ( size_t row = 0; row < col_size; ++row ) {
+        uu[row].x = uu[row].x - vv[row].x;
+        uu[row].y = uu[row].y - vv[row].y;
+        uu[row].z = uu[row].z - vv[row].z;
+        uu[row].w = uu[row].w - vv[row].w;
     }
 };
 
-inline void la_printVec(const double *uu, size_t &row_size){
-    printf("using printVec");
-    for(size_t col = 0; col<row_size; ++col) {
-        printf("\t%f", uu[col]);
-    }
-    printf("\n");
+
+__host__ __device__
+void la_d4dealloc(double4 *uu){
+    free((double*)uu);
 };
 
-
-inline void la_print( double **uu,  size_t &row_size, size_t &col_size){
-    for ( size_t row = 0; row < row_size; ++row ) {
-        for (size_t col = 0; col < col_size; ++col) {
-            printf("\t%f", uu[row][col]);
-        }
+__host__ __device__
+void la_d4print(const double4 *uu,const size_t &col_size){
+    for (size_t row = 0; row < col_size; ++row) {
+        printf("\t%f\t%f\t%f\t%f", uu[row].x, uu[row].y, uu[row].z, uu[row].w);
+        //printf("\t%f\t%f\t%f", uu[row].x, uu[row].y, uu[row].z);
         printf("\n");
     }
-    printf("\n");
 };
 
-inline void la_print(const double *u,  size_t &row_size){
-    for (size_t col = 0; col < row_size; ++col) {
-        printf("\t%.16f", u[col]);
-    }
-    printf("\n");
+__host__ __device__
+void la_d4print(const double4 *uu){
+        printf("\t%f\t%f\t%f\t%f \n", uu->x, uu->y, uu->z, uu->w);
+};
+__host__ __device__
+void la_d4print(const double4 u){
+    printf("\t%f\t%f\t%f\t%f \n", u.x, u.y, u.z, u.w);
 };
 
 

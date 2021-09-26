@@ -20,7 +20,7 @@ namespace pawan{
 class __interaction{
 
 	protected:
-		double _nu;		/*!< Kinematic viscosity */
+
 		size_t _nWake;		/*!< Number of wake objects*/
 
 	private:
@@ -44,7 +44,8 @@ class __interaction{
 
 	public:
 		size_t _size;		/*!< Size of state vector */
-		
+                double _nu;		/*!< Kinematic viscosity */
+
 		//! Constructor
 		/*
 		 * Creates empty interaction object with one wake

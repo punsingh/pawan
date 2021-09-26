@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.2)
-project(PaWAn)
-#project(PaWAn LANGUAGES CXX CUDA)
+#project(PaWAn)
+project(PaWAn LANGUAGES CXX CUDA)
 # add the binary tree to the search path for include files
 # so that we will find pawanConfig.h
 
@@ -26,6 +26,7 @@ add_executable(pawan src/pawan.cpp)
 target_link_libraries(pawan ${LIB} ${gsl_LIBRARIES}) 
 
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Ofast -fopenmp -lpthread -L/usr/local/lib -lgsl -lgslcblas -lm -std=c++11 -pg -finstrument-functions -fprofile-arcs -ftest-coverage")
+#set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Ofast -fopenmp -lpthread -I/home/HT/ge56beh/gsl/include -L/home/HT/ge56beh/gsl/lib -lgsl -lgslcblas -lm -std=c++11")
 #-fprofile-arcs -ftest-coverage enable code coverage in clion
 #-O0 for profiling
 #-g for valgrind

@@ -66,7 +66,6 @@ inline void VELOCITY(	const double &kernel,
  * \param	displacement		gsl vector displacement between source and target
  * \param	retvorcity		gsl vector output rate of change of vorticity
  */
-
 inline void VORSTRETCH(	const double &q, 
 			const double &F, 
 			const gsl_vector *source_vorticity, 

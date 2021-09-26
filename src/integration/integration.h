@@ -15,6 +15,9 @@
 #include "src/utils/timing_utils.h"
 #include "src/interaction/interaction.h"
 #include "src/io/io.h"
+#include "src/interaction/interaction_utils_cu.h"
+#include "src/interaction/la_utils.h"
+
 
 namespace pawan{
 class __integration{
@@ -55,6 +58,8 @@ class __integration{
 		 * \param	IO	Input/Output file writing
 		 */
 		void integrate(__interaction *S, __io *IO);
+
+		void integrate_cuda(__interaction *S, __io *IO, __wake *W);
 };
 }
 #endif
