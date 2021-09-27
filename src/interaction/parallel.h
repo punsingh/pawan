@@ -14,8 +14,7 @@
 #include "src/utils/print_utils.h"
 #include "src/wake/wake.h"
 #include "src/interaction/interaction.h"
-//#include "src/interaction/interaction_utils.h"
-#include "src/interaction/interaction_utils_cu_test.h"
+#include "src/interaction/interaction_utils.h"
 #include "src/interaction/interaction_utils_cu.h"
 #include "src/interaction/la_utils.h"
 

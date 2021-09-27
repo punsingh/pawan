@@ -7,24 +7,18 @@
 #define CUDA_HOSTDEV __host__ __device__
 #endif
 */
-#include <math.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_vector.h>
-#include <stdio.h>
-#include <cuda.h>
+
 #include <cooperative_groups.h>
 namespace cg = cooperative_groups;
 
 #include "interaction_utils_cu.h"
-#include "test_cuda.h"
 #include "la_utils_cu.h"
 #include "cuda_utils_cu.h"
-#include "src/utils/gsl_utils.h"
 
 #define CUDART_PI       3.14159265358979323846	/* pi */
 #define CUDART_1_PI     0.31830988618379067154  /* 1/pi */
 #define CUDART_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
-#define BLOCK_SIZE      64                      /*max value shared memory-limited right now to 64*/
+#define BLOCK_SIZE      1                      /*max value shared memory-limited right now to 64*/
 
 __device__
 void cuKERNEL(	const double &rho,
@@ -168,7 +162,7 @@ void cuinteract(const int threadnum,
         __syncthreads();
         //#pragma unroll
         for (int j = 0; j < BLOCK_SIZE; j++) {
-            idx = {threadnum, blocknum * blockDim.x + threadIdx.x};
+            //int idx = {threadnum, blocknum * blockDim.x + threadIdx.x};
             const double4 r_trg = wpos_d4_block[j];
             const double4 a_trg = wvor_d4_block[j];
             const double s_trg = wrad_d_block[j];
@@ -269,7 +263,7 @@ void cuda_main(double &nu,
                const size_t numParticles,
                const size_t numDimensions,
                const double dt,
-               const size_t t_steps){
+               const size_t t_steps) {
 
     int num_gpu = 0;  // number of CUDA GPUs
     cudaGetDeviceCount(&num_gpu); //get number of gpus available
@@ -310,12 +304,24 @@ void cuda_main(double &nu,
     cudaMemcpy(dev_wretvor, Wretvor_d4_arr, d4_bytes, cudaMemcpyHostToDevice);
 
     double4 *dev_wpos_x1, *dev_wpos_x2, *dev_wpos_x3, *dev_wpos_x4;
-    cudaMalloc(&dev_wpos_x1, d4_bytes); cudaMalloc(&dev_wpos_x2, d4_bytes); cudaMalloc(&dev_wpos_x3, d4_bytes); cudaMalloc(&dev_wpos_x4, d4_bytes);
-    cudaMemset(dev_wpos_x1,0.0,d4_bytes); cudaMemset(dev_wpos_x2,0.0,d4_bytes); cudaMemset(dev_wpos_x3,0.0,d4_bytes); cudaMemset(dev_wpos_x4,0.0,d4_bytes);
+    cudaMalloc(&dev_wpos_x1, d4_bytes);
+    cudaMalloc(&dev_wpos_x2, d4_bytes);
+    cudaMalloc(&dev_wpos_x3, d4_bytes);
+    cudaMalloc(&dev_wpos_x4, d4_bytes);
+    cudaMemset(dev_wpos_x1, 0.0, d4_bytes);
+    cudaMemset(dev_wpos_x2, 0.0, d4_bytes);
+    cudaMemset(dev_wpos_x3, 0.0, d4_bytes);
+    cudaMemset(dev_wpos_x4, 0.0, d4_bytes);
 
     double4 *dev_wvor_x1, *dev_wvor_x2, *dev_wvor_x3, *dev_wvor_x4;
-    cudaMalloc(&dev_wvor_x1, d4_bytes); cudaMalloc(&dev_wvor_x2, d4_bytes); cudaMalloc(&dev_wvor_x3, d4_bytes); cudaMalloc(&dev_wvor_x4, d4_bytes);
-    cudaMemset(dev_wvor_x1,0.0,d4_bytes); cudaMemset(dev_wvor_x2,0.0,d4_bytes); cudaMemset(dev_wvor_x3,0.0,d4_bytes); cudaMemset(dev_wvor_x4,0.0,d4_bytes);
+    cudaMalloc(&dev_wvor_x1, d4_bytes);
+    cudaMalloc(&dev_wvor_x2, d4_bytes);
+    cudaMalloc(&dev_wvor_x3, d4_bytes);
+    cudaMalloc(&dev_wvor_x4, d4_bytes);
+    cudaMemset(dev_wvor_x1, 0.0, d4_bytes);
+    cudaMemset(dev_wvor_x2, 0.0, d4_bytes);
+    cudaMemset(dev_wvor_x3, 0.0, d4_bytes);
+    cudaMemset(dev_wvor_x4, 0.0, d4_bytes);
 
     double *dev_wrad;
     cudaMalloc(&dev_wrad, d_bytes);
@@ -329,14 +335,14 @@ void cuda_main(double &nu,
 
     //cuda kernel arguments
     void *kernelArgs[] = {
-            (void *)&nu,  (void *)&dev_wpos, (void *)&dev_wvor, (void *)&dev_wvel,
-            (void *)&dev_wretvor, (void *)&dev_wrad, (void *)&dev_wvol,
-            (void *)&dev_wpos_x1, (void *)&dev_wvor_x1,
-            (void *)&dev_wpos_x2, (void *)&dev_wvor_x2,  (void *)&dev_wpos_x3, (void *)&dev_wvor_x3,
-            (void *)&numParticles, (void *)&dt,  (void *)&t_steps
+            (void *) &nu, (void *) &dev_wpos, (void *) &dev_wvor, (void *) &dev_wvel,
+            (void *) &dev_wretvor, (void *) &dev_wrad, (void *) &dev_wvol,
+            (void *) &dev_wpos_x1, (void *) &dev_wvor_x1,
+            (void *) &dev_wpos_x2, (void *) &dev_wvor_x2, (void *) &dev_wpos_x3, (void *) &dev_wvor_x3,
+            (void *) &numParticles, (void *) &dt, (void *) &t_steps
     };
-    dim3 dimGrid(nBlocks,1,1);  //check cuda-samples (multiple blocks possible per SM)
-    dim3 dimBlock(BLOCK_SIZE,1,1);
+    dim3 dimGrid(nBlocks, 1, 1);  //check cuda-samples (multiple blocks possible per SM)
+    dim3 dimBlock(BLOCK_SIZE, 1, 1);
 
     //lauching cuda kernels with 'cooperative groups'
     cudaLaunchCooperativeKernel((void *) cuINTERACT_rk4, dimGrid, dimBlock, kernelArgs);

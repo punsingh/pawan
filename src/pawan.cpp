@@ -25,15 +25,15 @@ int main(int argc, char* argv[]){
     pawan::__wake *W = new pawan::__square(2.,5.0,0.1,80);
     //pawan::__wake *W = new pawan::__ring(1.0,5.0,0.1,80);
     W->translate(2,-1);
-    pawan::__interaction *S = new pawan::__parallel(W);
+/*    pawan::__interaction *S = new pawan::__parallel(W);
     pawan::__integration *IN = new pawan::__rk4(5,100);
     IN->integrate(S,IO);
-/*
+*/
     //for cuda parallelisation
     pawan::__interaction *S = new pawan::__interaction(W);
     pawan::__integration *IN = new pawan::__integration(5.0,100);
-    IN->integrate(S,IO,W);
-/*
+    IN->integrate_cuda(S,IO,W);
+
     delete IN;
     delete S;
     delete W;

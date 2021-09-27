@@ -5,15 +5,6 @@
 #ifndef INTERACTION_UTILS_CU_H
 #define INTERACTION_UTILS_CU_H
 
-#include "interaction_utils_cu.h"
-#include <math.h>    //comment this when running CUDA
-#include "la_utils_cu.h"
-#include "cuda_utils_cu.h"
-#include "src/utils/gsl_utils.h"
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_vector.h>
-#include <stdio.h>
-#include <cuda.h>
 
 void cuda_main(   double &nu,
                double **Wpos_arr,

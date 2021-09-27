@@ -1,7 +1,7 @@
 add_library(interaction SHARED interaction.cpp parallel.cpp)
 find_package(CUDA)
 if(CUDA_FOUND)
-    add_library(cuda_parallel SHARED interaction_utils_cu_2.cu)
+    add_library(cuda_parallel SHARED interaction_utils_cu.cu)
     target_link_libraries(interaction PUBLIC cuda_parallel)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -rdc=true -gencode arch=compute_60,code=sm_60")
 endif(CUDA_FOUND)
