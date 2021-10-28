@@ -101,13 +101,20 @@ class __wake{
 		 */
 		virtual void getStates(gsl_vector *state);
 
-		//! Translate
+		//! Translate (deprecated)
 		/*
 		 * Translate wake structure
 		 * \param n		Axis
 		 * \param x		Distance
 		 */
 		virtual void translate(const size_t &n, const double &x);
+
+        //! Translate
+        /*
+         * Translate wake structure
+         * \param x		3-element array denoting translation
+         */
+        virtual void translate(const double *x);
 };
 }
 #endif

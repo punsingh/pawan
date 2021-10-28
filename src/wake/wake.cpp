@@ -124,3 +124,12 @@ void pawan::__wake::translate(const size_t &n, const double &x){
 	}
 
 }
+
+void pawan::__wake::translate(const double *x){
+    for(size_t i = 0; i<_numParticles; ++i){
+        for(size_t j = 0; j<_numDimensions; ++j) {
+            gsl_matrix_set(_position, i, j, x[j] + gsl_matrix_get(_position, i, j));
+        }
+    }
+
+}

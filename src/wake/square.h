@@ -32,6 +32,10 @@ class __square : public __wake{
 		 * \param nRadial	Number of particles/side
 		 */
 		__square(const double &gamma, const double &side, const double &core, const int &nSide);
+
+        __rectangle(const double &gamma, const double &len1, const double &len2,
+                 const double &core, const int &nlen1, const int &nlen2);
+
 		
 		//! Destructor
 		/*
