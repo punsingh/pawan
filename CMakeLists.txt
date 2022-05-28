@@ -13,8 +13,9 @@ add_subdirectory(src/io)
 add_subdirectory(src/system)
 add_subdirectory(src/interaction)
 add_subdirectory(src/integration)
+add_subdirectory(src/resolve)
 
-set(LIB wake io interaction integration system)
+set(LIB wake io interaction resolve integration system)
 
 find_package( PkgConfig REQUIRED)
 pkg_check_modules( gsl REQUIRED gsl )
