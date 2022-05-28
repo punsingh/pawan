@@ -97,9 +97,16 @@ class __wake{
 		//! Get states
 		/*
 		 * Get position and vorticities of particles
-		 * \param rate		Wake state
+		 * \param state		Wake state
 		 */
 		virtual void getStates(gsl_vector *state);
+		
+		//! Get desired rates
+		/*
+		 * Get ideal wake rates
+		 * \param rate		Wake rate
+		 */
+		virtual void getIdealRates(gsl_vector *rate);
 
 		//! Translate
 		/*
