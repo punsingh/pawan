@@ -125,10 +125,22 @@ class readWake:
         # print(self.volume)
         # print(self.birthstrength)
 
+    def writeTextFile(self,fname='temp.dat'):
+        """ writeTextFile Writes wake data into a text file
+        """
+        with open(fname,"w") as f:
+            f.write(r"Total number of timesteps = " + str(self.nTimesteps) + "\n")
+            for n in range(self.nTimesteps):
+                f.write(r"Timestep #" + str(n) + "\n")
+                f.write(r"Time = " + str(self.time[n]) + " seconds\n" )
+                f.write("x\ty\tz\tax\tay\taz\n")
+                np.savetxt(f,np.hstack((self.position[n],self.vorticity[n])), delimiter='\t',newline='\n',header='', footer='', fmt="%0.6e")
+
 if __name__ == "__main__":
     parser = ap.ArgumentParser()
     parser.add_argument("filename", nargs='?', default="data/temp.wake", help=".wake file")
     args = parser.parse_args()
     rw = readWake(args.filename)
-    rw.printData()
+    # rw.printData()
+    rw.writeTextFile("data/temp.dat")
 
