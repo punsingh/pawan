@@ -21,6 +21,21 @@ class __parallel : public __interaction{
 
 	private:
 		
+		//! Calculate Kinetic Energy
+		/*
+		 * Calculates kinetic energy of the wake
+		 * \param	W	Wake object pointer
+		 */
+		virtual double calculateKineticEnergy(__wake *W);
+		
+		//! Calculate Kinetic Energy
+		/*
+		 * Calculates kinetic energy of the wake
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual double calculateKineticEnergy(__wake *W1, __wake *W2);
+		
 		//! Interact
 		/*
 		 * Compute interaction between particles of a single wake object
@@ -50,6 +65,60 @@ class __parallel : public __interaction{
 		 * \param	W2	Wake 2 object pointer
 		 */
 		virtual void influence(__wake *W1, __wake *W2);
+		
+		//! Calculate Angular Impulse
+		/*
+		 * Calculates angular impulse of the wake
+		 * \param	W	Wake object pointer
+		 * \param	A	Angular impulse vector
+		 */
+		virtual void calculateAngularImpulse(__wake *W, gsl_vector *A);
+		
+		//! Calculate Linear Impulse
+		/*
+		 * Calculates linear impulse of the wake
+		 * \param	W	Wake object pointer
+		 * \param	I	Linear impulse vector
+		 */
+		virtual void calculateLinearImpulse(__wake *W, gsl_vector *I);
+		
+		//! Calculate Total Vorticity
+		/*
+		 * Calculates total vorticity of the wake
+		 * \param	W	Wake object pointer
+		 * \param	O	Total vorticity vector
+		 */
+		virtual void calculateTotalVorticity(__wake *W, gsl_vector *O);
+		
+		//! Calculate Enstrophy
+		/*
+		 * Calculates enstrophy of the wake
+		 * \param	W	Wake object pointer
+		 */
+		virtual double calculateEnstrophy(__wake *W);
+		
+		//! Calculate Enstrophy
+		/*
+		 * Calculates enstrophy of the wake
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual double calculateEnstrophy(__wake *W1, __wake *W2);
+		
+		//! Calculate Helicity
+		/*
+		 * Calculates helicity of the wake
+		 * \param	W	Wake object pointer
+		 */
+		virtual double calculateHelicity(__wake *W);
+		
+		//! Calculate Helicity
+		/*
+		 * Calculates helicity of the wake
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual double calculateHelicity(__wake *W1, __wake *W2);
 
 	public:
 		

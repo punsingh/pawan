@@ -21,14 +21,95 @@ namespace pawan{
 class __interaction : public __system{
 
 	protected:
-		double _nu;		/*!< Kinematic viscosity */
-		size_t _nWake;		/*!< Number of wake objects*/
+		double _nu;			/*!< Kinematic viscosity */
+		size_t _nWake;			/*!< Number of wake objects*/
+		gsl_vector *_totalVorticity;	/*!< Total vorticity */
+		gsl_vector *_linearImpulse;	/*!< Linear Impulse */
+		gsl_vector *_angularImpulse;	/*!< Angular Impulse */
+		double _enstrophy;		/*!< Enstrophy */
+		double _helicity;		/*!< Helicity */
+		double _kineticEnergy;		/*!< Kinetic Energy */
+		
+		//! Calculate Kinetic Energy
+		/*
+		 * Calculates kinetic energy of the wake
+		 * \param	W	Wake object pointer
+		 */
+		virtual double calculateKineticEnergy(__wake *W);
+		
+		//! Calculate Kinetic Energy
+		/*
+		 * Calculates kinetic energy of the wake
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual double calculateKineticEnergy(__wake *W1, __wake *W2);
+		
+		//! Calculate Enstrophy
+		/*
+		 * Calculates enstrophy of the wake
+		 * \param	W	Wake object pointer
+		 */
+		virtual double calculateEnstrophy(__wake *W);
+		
+		//! Calculate Enstrophy
+		/*
+		 * Calculates enstrophy of the wake
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual double calculateEnstrophy(__wake *W1, __wake *W2);
+		
+		//! Calculate Helicity
+		/*
+		 * Calculates helicity of the wake
+		 * \param	W	Wake object pointer
+		 */
+		virtual double calculateHelicity(__wake *W);
+		
+		//! Calculate Helicity
+		/*
+		 * Calculates helicity of the wake
+		 * \param	W1	Wake 1 object pointer
+		 * \param	W2	Wake 2 object pointer
+		 */
+		virtual double calculateHelicity(__wake *W1, __wake *W2);
+		
+		//! Calculate Angular Impulse
+		/*
+		 * Calculates angular impulse of the wake
+		 * \param	W	Wake object pointer
+		 * \param	A	Angular impulse vector
+		 */
+		virtual void calculateAngularImpulse(__wake *W, gsl_vector *A);
+		
+		//! Calculate Linear Impulse
+		/*
+		 * Calculates linear impulse of the wake
+		 * \param	W	Wake object pointer
+		 * \param	I	Linear impulse vector
+		 */
+		virtual void calculateLinearImpulse(__wake *W, gsl_vector *I);
+		
+		//! Calculate Total Vorticity
+		/*
+		 * Calculates total vorticity of the wake
+		 * \param	W	Wake object pointer
+		 * \param	O	Total vorticity vector
+		 */
+		virtual void calculateTotalVorticity(__wake *W, gsl_vector *O);
 		
 		//! Interact
 		/*
 		 * Compute interaction between wake particles
 		 */
 		virtual void interact();
+		
+		//! Influence
+		/*
+		 * Compute vorticity field
+		 */
+		virtual void influence();
 
 	private:
 		std::vector<pawan::__wake *> _W;
@@ -68,6 +149,12 @@ class __interaction : public __system{
 		
 		//! Constructor
 		/*
+		 * Creates empty interaction object with no wake
+		 */
+		__interaction();
+		
+		//! Constructor
+		/*
 		 * Creates empty interaction object with one wake
 		 * \param	W	Wake object pointer
 		 */
@@ -85,13 +172,31 @@ class __interaction : public __system{
 		/*
 		 * Deletes particles
 		 */
-		~__interaction() = default;
+		~__interaction();
+		
+		//! Diagnose
+		/*
+		 * Compute all diagnostic terms for the flow field
+		 */
+		virtual void diagnose();
+
+		//! Add wake structure
+		/*
+		 * Add wake object
+		 */
+		virtual void addWake(__wake *W);
 
 		//! Solve system
 		/*
 		 * Solve system
 		 */
 		virtual void solve();
+
+		//! Resolve system
+		/*
+		 * Resolve system
+		 */
+		virtual void resolve();
 
 		//! Write all wake data
 		/*
@@ -120,6 +225,13 @@ class __interaction : public __system{
 		 * \param state		Wake state
 		 */
 		virtual void getStates(gsl_vector *state);
+		
+		//! Get ideal rates
+		/*
+		 * Get ideal rates
+		 * \param rate		Wake rate
+		 */
+		virtual void getIdealRates(gsl_vector *rate);
 };
 }
 #endif
