@@ -15,6 +15,10 @@
 #include "src/utils/timing_utils.h"
 #include "src/system/system.h"
 #include "src/io/io.h"
+#include "src/wake/rotor_ll.h"
+#include "src/networkinterface/networkdatastructures.h"
+#include "src/networkinterface/networkinterface.h"
+#include "src/networkinterface/networkinterface.cpp" //templates included this way
 
 namespace pawan{
 class __integration{
@@ -23,7 +27,17 @@ class __integration{
 		double _dt;	/*!< Time step size */
 		double _t;	/*!< Total time */
 		size_t _n;	/*!< Number of time steps */
-		
+
+        //! Time step
+        /*
+         * Advance one time step
+         * \param	dt	Time step
+         * \param	S	Interaction solver
+         * \param	state	System state
+         */
+        virtual void step(const double &dt,__system *S,
+                          gsl_vector *state);
+
 		//! Time step
 		/*
 		 * Advance one time step
@@ -31,7 +45,8 @@ class __integration{
 		 * \param	S	Interaction solver
 		 * \param	state	System state
 		 */
-		virtual void step(const double &dt,__system *S, gsl_vector *state);
+		virtual void step(const double &dt,__system *S,
+                          gsl_vector *state,__rotor_ll *R);
 
 	public:
 		//! Constructor
@@ -47,14 +62,22 @@ class __integration{
 		 * Deletes particles
 		 */
 		~__integration() = default;
-		
+
+        //! Integrate
+        /*
+         * Integrates wake
+         * \param	S	Interaction solver
+         * \param	IO	Input/Output file writing
+         */
+        void integrate(__system *S, __io *IO, NetworkInterfaceTCP<OPawanRecvData,OPawanSendData> *networkCommunicatorTest);
+
 		//! Integrate
 		/*
 		 * Integrates wake
 		 * \param	S	Interaction solver
 		 * \param	IO	Input/Output file writing
 		 */
-		void integrate(__system *S, __io *IO);
+		void integrate(__system *S, __io *IO, __rotor_ll *R);
 };
 }
 #endif

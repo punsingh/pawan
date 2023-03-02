@@ -15,6 +15,7 @@
 
 #include "src/io/io.h"
 #include "src/utils/gsl_utils.h"
+#include "src/networkinterface/networkdatastructures.h"
 
 namespace pawan{
 
@@ -29,9 +30,14 @@ class __wake{
 		 */
 		virtual void create_particles(const int &n);
 
-	public:
-		size_t _size;			/*!< Size of state vector */
+        //! Create a large (default) number of particles
+        virtual void initialise_memory();
+
+    public:
+		size_t _size;			    /*!< Size of state vector with particle entries */
+        size_t _maxsize;			/*!< Max size of state vector with particle entries */
 		size_t _numParticles;		/*!< Number of vortex particles */
+        size_t _maxnumParticles;	/*!< Max expected number of vortex particles */
 		gsl_matrix *_position;		/*!< Particle positions */
 		gsl_matrix *_velocity;		/*!< Particle velocity */
 		gsl_matrix *_vorticity;		/*!< Particle vorticities */
@@ -40,19 +46,34 @@ class __wake{
 		gsl_vector *_volume;		/*!< Particle volumes */
 		gsl_vector *_birthstrength;	/*!< Strengths of particles at birth */
 		gsl_matrix *_vorticityfield;	/*!< Vorticity field */
+        gsl_vector *_active;		/*!< Particle active in simulation or defunct */
 		
 		//! Constructor
 		/*
 		 * Creates default
 		 */
 		__wake();
-		
-		//! Destructor
+
+        //! Constructor for Dymore coupling
+        /*
+         * Creates vortex particles at the first time step
+         */
+        __wake(PawanRecvData pawanrecvdata);
+
+    //! Destructor
 		/*
 		 * Deletes particles
 		 */
 		virtual ~__wake();
 
+        //!
+        /*
+         * Adds vortex particles as the Dymore coupling progresses
+         */
+        virtual void addParticles(PawanRecvData pawanrecvdata);
+        //!
+        virtual void updateVinfEffect(double &dt, gsl_vector* states);
+        virtual void updateVinfEffect(double &dt);
 		//! Print all wake particles
 		/*
 		 * Print wake particle information

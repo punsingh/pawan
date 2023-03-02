@@ -9,6 +9,7 @@
 #include "interaction_utils.h"
 
 pawan::__interaction::__interaction(){
+    DOUT("--------------------------------in pawan::__interaction::__interaction()");
 	//_nu = 2.0e-2;
 	_nu = 2.5e-3;
 	_nWake = 0;
@@ -18,35 +19,44 @@ pawan::__interaction::__interaction(){
 }
 
 pawan::__interaction::__interaction(__wake *W):__interaction(){
-	addWake(W);
+    DOUT("--------------------------------in pawan::__interaction::__interaction(__wake *W):__interaction()");
+    _maxsize = W->_maxsize;
+    _maxnumParticles = W->_maxnumParticles;
+    addWake(W);
 }
 
 pawan::__interaction::__interaction(__wake *W1, __wake *W2):__interaction(){
-	addWake(W1);
-	addWake(W2);
+    DOUT("--------------------------------in pawan::__interaction::__interaction(__wake *W1, __wake *W2):__interaction()");
+	addWake(W1); //multiple wakes is an issue with _size and _maxsize definitions
+	addWake(W2); //fix it later
 }
 
 pawan::__interaction::~__interaction(){
+    DOUT("--------------------------------in pawan::__interaction::~__interaction()");
 	gsl_vector_free(_totalVorticity);
 	gsl_vector_free(_linearImpulse);
 	gsl_vector_free(_angularImpulse);
 }
 
 void pawan::__interaction::addWake(__wake *W){
+    DOUT("--------------------------------in pawan::__interaction::addWake()");
 	_W.push_back(W);
 	_size += W->_size;
 	_nWake++;
 }
 
 void pawan::__interaction::solve(){
+    DOUT("--------------------------------in pawan::__interaction::solve()");
 	interact();
 }
 
 void pawan::__interaction::resolve(){
+    DOUT("--------------------------------in pawan::__interaction::resolve()");
 	influence();
 }
 
 void pawan::__interaction::diagnose(){
+    DOUT("--------------------------------in pawan::__interaction::diagnose()");
 	// Linear diagnostics
 	gsl_vector_set_zero(_totalVorticity);
 	gsl_vector_set_zero(_linearImpulse);
@@ -58,13 +68,13 @@ void pawan::__interaction::diagnose(){
 	for(auto &w : _W){
 		// Total vorticity
 		calculateTotalVorticity(w,O);
-		gsl_vector_add(_totalVorticity,O);
+        gsl_vector_add(_totalVorticity,O);
 		// Linear impulse
 		calculateLinearImpulse(w,I);
-		gsl_vector_add(_linearImpulse,I);
+        gsl_vector_add(_linearImpulse,I);
 		// Angular impulse
 		calculateAngularImpulse(w,A);
-		gsl_vector_add(_angularImpulse,A);
+        gsl_vector_add(_angularImpulse,A);
 	}
 	OUTT("Total Vorticity",_totalVorticity);
 	OUTT("Linear Impulse",_linearImpulse);
@@ -93,6 +103,7 @@ void pawan::__interaction::diagnose(){
 }
 
 void pawan::__interaction::interact(){
+    DOUT("--------------------------------in pawan::__interaction::interact()");
 	for(auto &w : _W){
 		gsl_matrix_set_zero(w->_velocity);
 		gsl_matrix_set_zero(w->_retvorcity);
@@ -108,6 +119,7 @@ void pawan::__interaction::interact(){
 }
 
 void pawan::__interaction::influence(){
+    DOUT("--------------------------------in pawan::__interaction::influence()");
 	for(auto &w : _W){
 		gsl_matrix_set_zero(w->_vorticityfield);
 	}
@@ -122,6 +134,7 @@ void pawan::__interaction::influence(){
 }
 
 void pawan::__interaction::influence(__wake *W){
+    DOUT("--------------------------------in pawan::__interaction::influence(__wake *W)");
 	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
@@ -139,6 +152,7 @@ void pawan::__interaction::influence(__wake *W){
 }
 
 void pawan::__interaction::influence(__wake *W1, __wake *W2){
+    DOUT("--------------------------------in pawan::__interaction::influence(__wake *W1, __wake *W2)");
 	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
@@ -155,6 +169,7 @@ void pawan::__interaction::influence(__wake *W1, __wake *W2){
 }
 
 void pawan::__interaction::interact(__wake *W){
+    DOUT("--------------------------------in pawan::__interaction::interact(__wake *W)");
 	for(size_t i_src = 0; i_src < W->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W->_vorticity,i_src);
@@ -175,6 +190,7 @@ void pawan::__interaction::interact(__wake *W){
 }
 
 void pawan::__interaction::interact(__wake *W1, __wake *W2){
+    DOUT("--------------------------------in pawan::__interaction::interact(__wake *W1, __wake *W2)");
 	for(size_t i_src = 0; i_src < W1->_numParticles; ++i_src){
 		gsl_vector_const_view r_src = gsl_matrix_const_row(W1->_position,i_src);
 		gsl_vector_const_view a_src = gsl_matrix_const_row(W1->_vorticity,i_src);
@@ -195,40 +211,70 @@ void pawan::__interaction::interact(__wake *W1, __wake *W2){
 }
 
 void pawan::__interaction::write(FILE *f){
-	fwrite(&_nWake,sizeof(size_t),1,f);	
+    DOUT("--------------------------------in pawan::__interaction::write(FILE *f)");
+	fwrite(&_nWake,sizeof(size_t),1,f);
+    fwrite(&_maxnumParticles,sizeof(size_t),1,f);
+
 	for(auto &w: _W){
 		w->write(f);
 	}
 }
 
 void pawan::__interaction::setStates(const gsl_vector *state){
+    DOUT("--------------------------------in pawan::__interaction::setStates(const gsl_vector *state)");
 	size_t offset = 0;
 	for(auto &w: _W){
-		gsl_vector_const_view st = gsl_vector_const_subvector(state,offset,w->_size);
+		gsl_vector_const_view st = gsl_vector_const_subvector(state,offset,w->_maxsize);
 		w->setStates(&st.vector);
-		offset += w->_size;
+		offset += w->_maxsize;
 	}
 }
 
 void pawan::__interaction::getRates(gsl_vector *rate){
+    DOUT("--------------------------------in pawan::__interaction::getRates(gsl_vector *rate)");
 	size_t offset = 0;
 	for(auto &w: _W){
-		gsl_vector_view rt = gsl_vector_subvector(rate,offset,w->_size);
+		gsl_vector_view rt = gsl_vector_subvector(rate,offset,w->_maxsize);
 		w->getRates(&rt.vector);
-		offset += w->_size;
+		offset += w->_maxsize;
 	}
 }
 
 void pawan::__interaction::getStates(gsl_vector *state){
+    DOUT("--------------------------------in pawan::__interaction::getStates(gsl_vector *state)");
 	size_t offset = 0;
 	for(auto &w: _W){
-		gsl_vector_view st = gsl_vector_subvector(state,offset,w->_size);
+		gsl_vector_view st = gsl_vector_subvector(state,offset,w->_maxsize);
 		w->getStates(&st.vector);
-		offset += w->_size;
+		offset += w->_maxsize;
 	}
 }
 
+void pawan::__interaction::addParticles(PawanRecvData pawanrecvdata){
+    size_t offset = 0;
+    for(auto &w: _W){
+        w->addParticles(pawanrecvdata);
+        offset += w->_maxsize;
+    }
+}
+void pawan::__interaction::updateVinfEffect(double &dt, gsl_vector* states){
+    size_t offset = 0;
+    for(auto &w: _W){
+        w->updateVinfEffect(dt,states);
+        offset += w->_maxsize;
+    }
+}
+void pawan::__interaction::updateVinfEffect(double &dt){
+    size_t offset = 0;
+    for(auto &w: _W){
+        w->updateVinfEffect(dt);
+        offset += w->_maxsize;
+    }
+}
+
+
 void pawan::__interaction::getIdealRates(gsl_vector *rate){
+    DOUT("--------------------------------in pawan::__interaction::getIdealRates(gsl_vector *rate)");
 	size_t offset = 0;
 	for(auto &w: _W){
 		gsl_vector_view rt = gsl_vector_subvector(rate,offset,w->_size);
@@ -238,6 +284,7 @@ void pawan::__interaction::getIdealRates(gsl_vector *rate){
 }
 
 void pawan::__interaction::calculateTotalVorticity(__wake *W, gsl_vector *O){
+    DOUT("--------------------------------in pawan::__interaction::calculateTotalVorticity(__wake *W, gsl_vector *O)");
 	gsl_vector_set_zero(O);
 	for(size_t i = 0; i < W->_numParticles; ++i){
 		gsl_vector_const_view a = gsl_matrix_const_row(W->_vorticity,i);
@@ -246,6 +293,7 @@ void pawan::__interaction::calculateTotalVorticity(__wake *W, gsl_vector *O){
 }
 
 void pawan::__interaction::calculateLinearImpulse(__wake *W, gsl_vector *I){
+    DOUT("--------------------------------in pawan::__interaction::calculateLinearImpulse(__wake *W, gsl_vector *I)");
 	gsl_vector_set_zero(I);
 	gsl_vector *rxa = gsl_vector_calloc(3);
 	for(size_t i = 0; i < W->_numParticles; ++i){
@@ -259,6 +307,7 @@ void pawan::__interaction::calculateLinearImpulse(__wake *W, gsl_vector *I){
 }
 
 void pawan::__interaction::calculateAngularImpulse(__wake *W, gsl_vector *A){
+    DOUT("--------------------------------in pawan::__interaction::calculateAngularImpulse(__wake *W, gsl_vector *A)");
 	gsl_vector_set_zero(A);
 	gsl_vector *rxa = gsl_vector_calloc(3);
 	gsl_vector *rxrxa = gsl_vector_calloc(3);
@@ -275,6 +324,7 @@ void pawan::__interaction::calculateAngularImpulse(__wake *W, gsl_vector *A){
 }
 
 double pawan::__interaction::calculateEnstrophy(__wake *W){
+    DOUT("--------------------------------in pawan::__interaction::calculateEnstrophy(__wake *W)");
 	double s = 0.0;
 	for(size_t I = 0; I < W->_numParticles; ++I){
 		gsl_vector_const_view rI = gsl_matrix_const_row(W->_position,I);
@@ -315,7 +365,9 @@ double pawan::__interaction::calculateEnstrophy(__wake *W1, __wake *W2){
 }
 
 double pawan::__interaction::calculateHelicity(__wake *W){
-	double h = 0.0;
+    DOUT("--------------------------------in pawan::__interaction::calculateHelicity(__wake *W)");
+	int test_counter=0;
+    double h = 0.0;
 	for(size_t I = 0; I < W->_numParticles; ++I){
 		gsl_vector_const_view rI = gsl_matrix_const_row(W->_position,I);
 		gsl_vector_const_view aI = gsl_matrix_const_row(W->_vorticity,I);
@@ -324,7 +376,10 @@ double pawan::__interaction::calculateHelicity(__wake *W){
 			gsl_vector_const_view rJ = gsl_matrix_const_row(W->_position,J);
 			gsl_vector_const_view aJ = gsl_matrix_const_row(W->_vorticity,J);
 			double sJ = gsl_vector_get(W->_radius,J);
-			h += HELICITY(sI,sJ,&rI.vector,&rJ.vector,&aI.vector,&aJ.vector);
+            test_counter = test_counter+1;
+			//printf("I=%d, J=%d ==== %d",I,J,test_counter);
+            //printf("number of particles %d",W->_numParticles);
+            h += HELICITY(sI,sJ,&rI.vector,&rJ.vector,&aI.vector,&aJ.vector);
 		}
 	}
 	// doubling H because H(i,j) = H(j,i)
@@ -332,6 +387,7 @@ double pawan::__interaction::calculateHelicity(__wake *W){
 }
 
 double pawan::__interaction::calculateHelicity(__wake *W1, __wake *W2){
+    DOUT("--------------------------------in pawan::__interaction::calculateHelicity(__wake *W1, __wake *W2)");
 	double h = 0.0;
 	for(size_t I = 0; I < W1->_numParticles; ++I){
 		gsl_vector_const_view rI = gsl_matrix_const_row(W1->_position,I);
@@ -349,6 +405,7 @@ double pawan::__interaction::calculateHelicity(__wake *W1, __wake *W2){
 }
 
 double pawan::__interaction::calculateKineticEnergy(__wake *W){
+    DOUT("--------------------------------in pawan::__interaction::calculateKineticEnergy(__wake *W)");
 	double ke = 0.0;
 	for(size_t I = 0; I < W->_numParticles; ++I){
 		gsl_vector_const_view rI = gsl_matrix_const_row(W->_position,I);
@@ -366,6 +423,7 @@ double pawan::__interaction::calculateKineticEnergy(__wake *W){
 }
 
 double pawan::__interaction::calculateKineticEnergy(__wake *W1, __wake *W2){
+    DOUT("--------------------------------in pawan::__interaction::calculateKineticEnergy(__wake *W1, __wake *W2)");
 	double ke = 0.0;
 	for(size_t I = 0; I < W1->_numParticles; ++I){
 		gsl_vector_const_view rI = gsl_matrix_const_row(W1->_position,I);

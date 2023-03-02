@@ -16,6 +16,7 @@
 #include "src/utils/print_utils.h"
 #include "src/system/system.h"
 #include "src/wake/wake.h"
+#include "src/networkinterface/networkdatastructures.h"
 
 namespace pawan{
 class __interaction : public __system{
@@ -225,7 +226,12 @@ class __interaction : public __system{
 		 * \param state		Wake state
 		 */
 		virtual void getStates(gsl_vector *state);
-		
+
+		//! add new particles
+		virtual void addParticles(PawanRecvData pawanrecvdata);
+        //! add new particles
+        virtual void updateVinfEffect(double &dt, gsl_vector* states);
+        virtual void updateVinfEffect(double &dt);
 		//! Get ideal rates
 		/*
 		 * Get ideal rates

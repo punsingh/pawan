@@ -14,13 +14,15 @@
 
 #include <gsl/gsl_vector.h>
 #include "src/utils/print_utils.h"
+#include "src/networkinterface/networkdatastructures.h"
 
 namespace pawan{
 class __system{
 
 	public:
 		size_t _size;		/*!< Size of state vector */
-		
+		size_t _maxsize;
+        size_t _maxnumParticles;
 		//! Constructor
 		/*
 		 * Creates empty system object
@@ -66,6 +68,13 @@ class __system{
 		 * \param state		System state
 		 */
 		virtual void getStates(gsl_vector *state){};
+
+        //! add new particles
+        virtual void addParticles(PawanRecvData pawanrecvdata){};
+        //!
+        virtual void updateVinfEffect(double &dt, gsl_vector* states){};
+        virtual void updateVinfEffect(double &dt){};
+
 };
 }
 #endif
