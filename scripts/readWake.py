@@ -7,6 +7,7 @@ import struct
 import numpy as np
 import argparse as ap
 
+
 class readWake:
     """ Documentation for readWake
     Wake file includes:
@@ -25,20 +26,24 @@ class readWake:
             fileContent = file.read()
         self.fileSize = len(fileContent)
         self.time = []
+        self.nParticlesMax = []
         self.nParticles = []
         self.position = []
         self.vorticity = []
         self.radius = []
+        self.active = []
         # self.volume = []
         # self.birthstrength = []
         while len(fileContent)>0:
             # [t,n,p,q,r,v,b,fileContent] = self.getAllWakeState(fileContent)
-            [t,n,p,q,r,fileContent] = self.getAllWakeState(fileContent)
+            [t,nmax,n,p,q,r,a,fileContent] = self.getAllWakeState(fileContent)
             self.time.append(t)
+            self.nParticlesMax.append(nmax)
             self.nParticles.append(n)
             self.position.append(p)
             self.vorticity.append(q)
             self.radius.append(r)
+            self.active.append(a)
             # self.volume.append(v)
             # self.birthstrength.append(b)
         self.nTimesteps = len(self.time)
@@ -77,41 +82,47 @@ class readWake:
         [time, fileContent] = self.getDouble(fileContent)
         [nWake, fileContent] = self.getInteger(fileContent)
         fileContent = fileContent[4:]   # Skipping 4 bit blank space
+        [nParticlesMax, fileContent] = self.getInteger(fileContent)
+        fileContent = fileContent[4:]   # Skipping 4 bit blank space
         nParticles = 0 
         position = []
         vorticity = []
         radius = []
+        active = []
         # volume = []
         # birthstrength = []
         for n in range(nWake):
             # [npar,pos,vort,rad,vol,bs,fileContent] = self.getWakeState(fileContent)
-            [npar,pos,vort,rad,fileContent] = self.getWakeState(fileContent)
+            [npar,pos,vort,rad,act,fileContent] = self.getWakeState(fileContent, nParticlesMax)
             nParticles = nParticles + npar
             position.append(pos)
             vorticity.append(vort)
             radius.append(rad)
+            active.append(act)
             # volume.append(vol)
             # birthstrength.append(bs)
         position = np.concatenate(position)
         vorticity = np.concatenate(vorticity)
         radius = np.concatenate(radius)
+        active = np.concatenate(active)
         # volume = np.concatenate(volume)
         # birthstrength = np.concatenate(birthstrength)
         # return [time, nParticles, position, vorticity, radius, volume, birthstrength, fileContent]
-        return [time, nParticles, position, vorticity, radius, fileContent]
+        return [time, nParticlesMax, nParticles, position, vorticity, radius, active, fileContent]
 
-    def getWakeState(self, fileContent):
+    def getWakeState(self, fileContent, nParticlesMax):
         """ getWakeState returns wake data from file
         """
         [nParticles, fileContent] = self.getInteger(fileContent)
         fileContent = fileContent[4:]   # Skipping 4 bit blank space
-        [position, fileContent] = self.getMatrix(fileContent,nParticles)
-        [vorticity, fileContent] = self.getMatrix(fileContent,nParticles)
-        [radius, fileContent] = self.getVector(fileContent,nParticles)
+        [position, fileContent] = self.getMatrix(fileContent,nParticlesMax)
+        [vorticity, fileContent] = self.getMatrix(fileContent,nParticlesMax)
+        [radius, fileContent] = self.getVector(fileContent,nParticlesMax)
+        [active, fileContent] = self.getVector(fileContent,nParticlesMax)
         # [volume, fileContent] = self.getVector(fileContent,nParticles)
         # [birthstrength, fileContent] = self.getVector(fileContent,nParticles)
         # return [nParticles, position, vorticity, radius, volume, birthstrength, fileContent]
-        return [nParticles, position, vorticity, radius, fileContent]
+        return [nParticles, position, vorticity, radius, active, fileContent]
 
     def printData(self):
         """ printData prints wake properties
@@ -137,10 +148,14 @@ class readWake:
                 np.savetxt(f,np.hstack((self.position[n],self.vorticity[n])), delimiter='\t',newline='\n',header='', footer='', fmt="%0.6e")
 
 if __name__ == "__main__":
-    parser = ap.ArgumentParser()
-    parser.add_argument("filename", nargs='?', default="data/temp.wake", help=".wake file")
-    args = parser.parse_args()
-    rw = readWake(args.filename)
-    # rw.printData()
-    rw.writeTextFile("data/temp.dat")
+    # parser = ap.ArgumentParser()
+    # parser.add_argument("filename", nargs='?', default="../data/temp.wake", help=".wake file")
+    # args = parser.parse_args()
+    # rw = readWake(args.filename)
+    # # rw.printData()
+    # rw.writeTextFile("../data/temp.dat")
+    directry = "../data"
+    filename = "temp.wake"
+    wake = readWake(f"{directry}/{filename}")
+
 
