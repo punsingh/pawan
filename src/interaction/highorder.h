@@ -18,6 +18,7 @@
  * \param	sigma		double radius
  */
 inline double ZETASIG(	const double &rho, const double &sigma){
+    //DOUT("----------------ZETASIG()--------------");
 	double rho_bar = rho/sigma;
 	return 1.875*M_1_PI/pow(rho_bar*rho_bar + 1.0,7.5)/pow(sigma,3);
 };
@@ -29,6 +30,7 @@ inline double ZETASIG(	const double &rho, const double &sigma){
  */
 inline double QSIG(	const double &rho, 
 			const double &sigma){
+    //DOUT("----------------QSIG()--------------");
 	double rho_bar = rho/sigma;
 	double Z = ZETASIG(rho,sigma);
 	double rho_bar2 = gsl_pow_2(rho_bar);
@@ -50,6 +52,7 @@ inline void KERNEL(	const double &rho,
 			double &q, 
 			double &F, 
 			double &Z){
+    //DOUT("----------------KERNEL()--------------");
 	double rho_bar = rho/sigma;
 	Z = ZETASIG(rho,sigma);
 	double rho_bar2 = gsl_pow_2(rho_bar);
@@ -70,6 +73,7 @@ inline void ENST(	const double &rho,
 			const double &sigma,
 			double &F1,
 			double &F2){
+    //DOUT("----------------ENST()--------------");
 	double rho2 = gsl_pow_2(rho);
 	double sig2 = gsl_pow_2(sigma);
 	double factor = (M_1_PI/8.0)/sqrt(gsl_pow_7(rho2 + sig2));
@@ -82,6 +86,7 @@ inline void ENST(	const double &rho,
  * \param	sigma		double radius
  */
 inline double ENST(	const double &sigma){
+    //DOUT("----------------ENST()--------------");
 	return 5.0*M_1_PI/4.0/gsl_pow_3(sigma);
 };
 
