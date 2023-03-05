@@ -36,7 +36,7 @@ inline void KERNEL(	const double &rho,
 	double rho_bar = rho/sigma;
 	double sig3 = sigma*sigma*sigma;
 	double phi = 0.25*M_1_PI*erf(M_SQRT1_2*rho_bar)/sig3;
-	Z = 0.5*exp(-0.5*rho_bar*rho_bar)/sig3/pow(M_PI,1.5);
+	Z = exp(-0.5*rho_bar*rho_bar)/sig3/pow(2*M_PI,1.5);
 	q = (phi/rho_bar - Z)/gsl_pow_2(rho_bar);
 	F = (Z - 3*q)/gsl_pow_2(rho);
 
