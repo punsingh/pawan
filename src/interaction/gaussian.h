@@ -72,6 +72,12 @@ inline void ENST(	const double &rho,
 	F2 = 0.0;
 };
 
+inline void ENSTF(	const double &rho,
+                      const double &sigma,
+                      double &F1){
+    F1 = 0.0;
+};
+
 /*! \fn inline double ENST(const double &rho, const double &sigma, double &q)
  * \brief Compute enstrophy induced by vortex particle kernel
  * \param	sigma		double radius
@@ -79,5 +85,9 @@ inline void ENST(	const double &rho,
 inline double ENST(	const double &sigma){
 	return 0.0;
 };
+inline double ENSTF(	const double &sigma){
+    return 0.0;
+};
+
 
 #endif

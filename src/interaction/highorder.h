@@ -20,7 +20,7 @@
 inline double ZETASIG(	const double &rho, const double &sigma){
     //DOUT("----------------ZETASIG()--------------");
 	double rho_bar = rho/sigma;
-	return 1.875*M_1_PI/pow(rho_bar*rho_bar + 1.0,7.5)/pow(sigma,3);
+	return 1.875*M_1_PI/pow(rho_bar*rho_bar + 1.0,3.5)/pow(sigma,3);
 };
 
 /*! \fn inline double QSIG(const double &rho, const double &sigma, double &q)
@@ -32,11 +32,9 @@ inline double QSIG(	const double &rho,
 			const double &sigma){
     //DOUT("----------------QSIG()--------------");
 	double rho_bar = rho/sigma;
-	double Z = ZETASIG(rho,sigma);
 	double rho_bar2 = gsl_pow_2(rho_bar);
-	double sig3 = sigma*sigma*sigma;
-	double phi = 0.25*M_1_PI*(rho_bar2 + 1.5)/pow(rho_bar2 + 1.0,2.0)/sig3;
-	return (phi/rho_bar - Z)/gsl_pow_2(rho_bar);
+    double rho3 = rho*rho*rho;
+	return 0.25*M_1_PI*rho_bar2*rho_bar*(rho_bar2 + 2.5)/pow(rho_bar2 + 1.0,2.5)/rho3;
 };
 
 /*! \fn inline void KERNEL(const double &rho, const double &sigma, double &q, double &F, double &Z)
@@ -53,12 +51,8 @@ inline void KERNEL(	const double &rho,
 			double &F, 
 			double &Z){
     //DOUT("----------------KERNEL()--------------");
-	double rho_bar = rho/sigma;
 	Z = ZETASIG(rho,sigma);
-	double rho_bar2 = gsl_pow_2(rho_bar);
-	double sig3 = sigma*sigma*sigma;
-	double phi = 0.25*M_1_PI*(rho_bar2 + 1.5)/pow(rho_bar2 + 1.0,2.0)/sig3;
-	q = (phi/rho_bar - Z)/gsl_pow_2(rho_bar);
+	q = QSIG(rho,sigma);
 	F = (Z - 3*q)/gsl_pow_2(rho);
 };
 
@@ -77,8 +71,17 @@ inline void ENST(	const double &rho,
 	double rho2 = gsl_pow_2(rho);
 	double sig2 = gsl_pow_2(sigma);
 	double factor = (M_1_PI/8.0)/sqrt(gsl_pow_7(rho2 + sig2));
-	F1 = factor*(10.0*sig2*sig2 - 2.0*rho2*rho2 - 7.0*sig2*rho2);
-	F2 = factor*(-15.0*rho2);
+    F1 = factor*( 2.0*rho2*rho2 +  7.0*sig2*rho2 + 20.0*sig2*sig2);
+    F2 = factor*(-6.0*rho2*rho2 - 27.0*sig2*rho2 - 21.0*sig2*sig2)/(rho2 + sig2);
+};
+
+inline void ENSTF(	const double &rho,
+                     const double &sigma,
+                     double &F1){
+    //DOUT("----------------ENSTF()--------------");
+    double rho2 = gsl_pow_2(rho);
+    double sig2 = gsl_pow_2(sigma);
+    F1 = (15.0*M_1_PI*sig2*sig2/8.0)/sqrt(gsl_pow_7(rho2 + sig2));
 };
 
 /*! \fn inline double ENST(const double &rho, const double &sigma, double &q)
@@ -87,7 +90,12 @@ inline void ENST(	const double &rho,
  */
 inline double ENST(	const double &sigma){
     //DOUT("----------------ENST()--------------");
-	return 5.0*M_1_PI/4.0/gsl_pow_3(sigma);
+	return 5.0*M_1_PI/2.0/gsl_pow_3(sigma);
+};
+
+inline double ENSTF(	const double &sigma){
+    //DOUT("----------------ENST()--------------");
+    return 15.0*M_1_PI/8.0/gsl_pow_3(sigma);
 };
 
 #endif
