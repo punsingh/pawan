@@ -9,5 +9,5 @@
 
 pawan::__system::__system(){
     DOUT("----------------in pawan::__system::__system()");
-	_size = 0;
+	//_size = 0;
 }

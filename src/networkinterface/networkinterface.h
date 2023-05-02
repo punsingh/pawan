@@ -80,6 +80,7 @@ protected:
 
 public:
     virtual void recieve_data(DATA_IN &data) = 0;
+    virtual void getrecieveBuffer(DATA_IN &data) = 0;
 
     virtual void send_data(DATA_OUT &data) = 0;
 
@@ -104,7 +105,7 @@ public:
                         bool server_mode = false);
 
     void recieve_data(DATA_IN &data);
-
+    void getrecieveBuffer(DATA_IN &data);
     void send_data(DATA_OUT &data);
 
     void reconnect();

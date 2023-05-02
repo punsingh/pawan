@@ -10,7 +10,7 @@
 #ifndef WAKE_UTILS_H_
 #define WAKE_UTILS_H_
 
-#define HIGHORDER 1 
+#define HIGHORDER 1
 #define GAUSSIAN 0
 
 #include "src/utils/gsl_utils.h"
@@ -119,6 +119,16 @@ inline double ENSTROPHY(const double &s,
 	return S;
 };
 
+inline double ENSTROPHYF(const double &s,
+                        const gsl_vector *a){
+    //DOUT("---------------ENSTROPHY()---------------");
+    // Kernel Computation
+    double a2 = 0.0;
+    gsl_blas_ddot(a,a,&a2);
+    double S = ENSTF(s)*a2;
+    return S;
+};
+
 /*! \fn inline double ENSTROPHY(const double &s1, const double &s2, const gsl_vector *x1, const gsl_vector *x2, const gsl_vector *a1, const gsl_vector *a2)
  * \brief Compute helicity of vortices
  * \param	s1	double source radius 
@@ -146,7 +156,7 @@ inline double ENSTROPHY(const double &s1,
 	double F1 = 0.0;
 	double F2 = 0.0;
 
-	ENST(rho,sigma,F1,F2);	
+	ENST(rho,sigma,F1,F2);
 
 	// (a1.a2)
 	double a1a2 = 0.0;;
@@ -160,7 +170,36 @@ inline double ENSTROPHY(const double &s1,
 	// (a1.x12).(a2.x12)
 	
 	double S = F1*a1a2 + F2*a1x12*a2x12;
+    gsl_vector_free(x12);
+
 	return S;
+};
+
+inline double ENSTROPHYF(const double &s1,
+                        const double &s2,
+                        const gsl_vector *x1,
+                        const gsl_vector *x2,
+                        const gsl_vector *a1,
+                        const gsl_vector *a2){
+    // Kernel Computation
+    gsl_vector *x12 = gsl_vector_calloc(3);
+    gsl_vector_memcpy(x12,x2);
+    gsl_vector_sub(x12,x1);
+    double rho = gsl_blas_dnrm2(x12);
+    double sigma = sqrt(0.5*(gsl_pow_2(s1) + gsl_pow_2(s2)));
+
+    double F1 = 0.0;
+
+    ENSTF(rho,sigma,F1);
+
+    // (a1.a2)
+    double a1a2 = 0.0;;
+    gsl_blas_ddot(a1,a2,&a1a2);
+
+    double S = F1*a1a2;
+    gsl_vector_free(x12);
+
+    return S;
 };
 
 /*! \fn inline double HELICITY(const double &s1, const double &s2, const gsl_vector *x1, const gsl_vector *x2, const gsl_vector *a1, const gsl_vector *a2)
@@ -196,23 +235,35 @@ inline double HELICITY(	const double &s1,
 	gsl_blas_ddot(x12,a1Xa2,&roaxa);
 
 	double H = q*roaxa;
-	return H;
+    gsl_vector_free(x12);
+    gsl_vector_free(a1Xa2);
+
+    return H;
 };
 
 /*! \fn inline double KINETICENERGY(const double &s, const gsl_vector *x, const gsl_vector *a)
  * \brief Compute kinetic energy of vortices
- * \param	s	double source position 
+ * \param	s	double source radius
  * \param	a	gsl vector source vorticity
  */
 inline double KINETICENERGY(	const double &s,
 				const gsl_vector *a){
 	//DOUT("---------------KINETICENERGY()---------------");
-	//std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	double a2 = 0.0;
 	gsl_blas_ddot(a,a,&a2);
 	// KE = (1/8 pi).(a1.a1/sigma)
 	double KE = M_1_PI*a2/s/8.0;
 	return KE;
+};
+
+inline double KINETICENERGYF(	const double &s,
+                                const gsl_vector *a){
+    //DOUT("---------------KINETICENERGYF()---------------");
+    double a2 = 0.0;
+    gsl_blas_ddot(a,a,&a2);
+    // KE = (3/16 pi).(a1.a1/sigma)
+    double KE = 3*M_1_PI*a2/(s*16.0);
+    return KE;
 };
 
 /*! \fn inline double KINETICENERGY(const double &s1, const double &s2, const gsl_vector *x1, const gsl_vector *x2, const gsl_vector *a1, const gsl_vector *a2)
@@ -249,7 +300,34 @@ inline double KINETICENERGY(	const double &s1,
 	
 	// KE = (1/16 pi).((rho^2 + 2.sigma^2)*(a1.a2) + (x12.a1).(x12.a2))/(rho^2 + sigma^2)^3/2
 	double KE = ((rho2 + 2.0*sigma2)*a1a2 + (x12a1*x12a2))/pow(rho2 + sigma2,1.5)/16.0/M_PI;
+
+    gsl_vector_free(x12);
 	return KE;
+};
+
+inline double KINETICENERGYF(	const double &s1,
+                                const double &s2,
+                                const gsl_vector *x1,
+                                const gsl_vector *x2,
+                                const gsl_vector *a1,
+                                const gsl_vector *a2){
+    //DOUT("---------------KINETICENERGYF()---------------");
+    // Kernel Computation
+    gsl_vector *x12 = gsl_vector_calloc(3);
+    gsl_vector_memcpy(x12,x2);
+    gsl_vector_sub(x12,x1);
+    double rho2;
+    gsl_blas_ddot(x12,x12,&rho2);
+    double sigma2 = 0.5*(gsl_pow_2(s1) + gsl_pow_2(s2));
+    // a1 . a2
+    double a1a2 = 0.0;
+    gsl_blas_ddot(a1,a2,&a1a2);
+
+    // KE = (1/8 pi).(rho^2 + 1.5*sigma^2)*(a1.a2) /(rho^2 + sigma^2)^3/2
+    double KE = (rho2 + 1.5*sigma2)*a1a2 /pow(rho2 + sigma2,1.5)/8.0/M_PI;
+    gsl_vector_free(x12);
+
+    return KE;
 };
 
 /*! \fn inline void DIFFUSION(	const double &nu, const double &sigma, const double &Z, const gsl_vector *source_vorticity, const gsl_vector *target_vorticity, const double &source_volume, const double &target_volume, gsl_vector *retvorcity )
@@ -263,7 +341,7 @@ inline double KINETICENERGY(	const double &s1,
  * \param	target_volume		double target volume
  * \param	retvorcity		gsl vector output rate of change of vorticity
  */
-inline void DIFFUSION(	const double &nu, 
+inline void DIFFUSION(	const double &nu,
 			const double &sigma, 
 			const double &Z, 
 			const gsl_vector *source_vorticity, 
@@ -416,7 +494,7 @@ inline void INTERACT(	const double &nu,
 	// Source
 	gsl_vector_sub(da_source,da);
 	
-	// Clean up
+	// Clean up 
 	gsl_vector_free(dr);
 	gsl_vector_free(da);
 	gsl_vector_free(displacement);

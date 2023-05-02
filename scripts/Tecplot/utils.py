@@ -12,11 +12,20 @@ import tecplot as tp
 import sys
 import os
 import math
+from shutil import copy2
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 import readWake as rw
 
-   
+def saveplttodirs(dirstosave_plt,pltfilepath):
+    for dirtosave_plt in dirstosave_plt:
+        try:
+            os.makedirs(dirtosave_plt)
+        except FileExistsError:
+            pass                # directory already exists                   
+        copy2(pltfilepath, f'{dirtosave_plt}')
+        print(f'wake plt saved to {dirtosave_plt}')
+    
 def gen_plt(directry,filename,wake):
     nTimesteps = wake.nTimesteps
     time = wake.time
@@ -75,9 +84,11 @@ def gen_plt(directry,filename,wake):
 
     
 def gen_dat(directry,filename,wake):
+    
     nTimesteps = wake.nTimesteps
     time = wake.time
     nParticles = wake.nParticles
+    nParticlesMax = wake.nParticlesMax
     position = wake.position
     vorticity = wake.vorticity
     radius = wake.radius
@@ -91,37 +102,38 @@ def gen_dat(directry,filename,wake):
                  'vor_z':[vor_t[:,2] for vor_t in vorticity],
                  'radius':radius,
                  'active':active,                 
-                 'strength':[np.sqrt(vor_t[:,0]*vor_t[:,0]+vor_t[:,1]*vor_t[:,1]+vor_t[:,2]*vor_t[:,2]) for vor_t in vorticity],
+                 'Vor_strength':[np.sqrt(vor_t[:,0]*vor_t[:,0]+vor_t[:,1]*vor_t[:,1]+vor_t[:,2]*vor_t[:,2]) for vor_t in vorticity],
                  }
     variables_lst =  [f"\"{var}\"" for var in data_dict.keys()]
     variables_str = ' '.join(variables_lst)
     
-    datfilename = filename.replace(".wake",".dat")
-    datfilepath = f"{directry}/{datfilename}"
+    # datfilename = filename.replace(filename.split('.')[-1],"dat")
+    datfilepath = f"{directry}/{filename}.dat"
     with open(datfilepath,'w') as f:
         f.write('''TITLE     = "PAWAN"''')
         f.write("\n")        
         f.write('''VARIABLES = '''+variables_str)
         f.write("\n")
-        for tidx,(t, nP_t) in enumerate(zip(time,nParticles)):
+        for tidx,(t, nPlst_t, nPmax_t) in enumerate(zip(time,nParticles,nParticlesMax)):
+            # if tidx>100: continue
             # zoneT=f'\"{t}'
             f.write(f'ZONE T=\"{t}\"')
             f.write("\n")
             f.write(f"STRANDID=1 SOLUTIONTIME={t}")
             f.write("\n")
-            f.write(f"I={nP_t}, J=1, K=1")
+            f.write(f"I={sum(nPlst_t)}, J=1, K=1")
             f.write("\n")
-            for pidx in range(nP_t):
-                for var in data_dict.keys():
-                    f.write(f"{data_dict[var][tidx][pidx]:13.05f} ")
-                f.write("\n")
-    
-    print("...wake dat done")
+            for nwake,nPi_t in enumerate(nPlst_t):
+                for pidx in range(nPi_t):
+                    for var in data_dict.keys():
+                        f.write(f"{data_dict[var][tidx][pidx + nwake*nPmax_t]:20.05f} ")
+                    f.write("\n")    
+    print(".dat file created")
     return datfilepath
    
 if __name__ == "__main__":     
     directry = "../../data"
-    filename = "temp.wake"
+    filename = "temp"
     wake = rw.readWake(f"{directry}/{filename}")
 
     # gen_plt(directry,filename,wake)

@@ -258,6 +258,12 @@ void NetworkInterfaceTCP<DATA_IN, DATA_OUT>::recieve_data(DATA_IN &data)
 };
 
 template <class DATA_IN, class DATA_OUT>
+void NetworkInterfaceTCP<DATA_IN, DATA_OUT>::getrecieveBuffer(DATA_IN &data)
+{
+    std::memcpy(&data, this->_recieveBuffer, sizeof(DATA_IN));
+};
+
+template <class DATA_IN, class DATA_OUT>
 void NetworkInterfaceTCP<DATA_IN, DATA_OUT>::send_data(DATA_OUT &data)
 {
     // int a;

@@ -12,10 +12,14 @@
 #include <iostream>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_spline.h>
 
 #include "src/io/io.h"
 #include "src/utils/gsl_utils.h"
 #include "src/networkinterface/networkdatastructures.h"
+#define SHEDVOR 1 //model only trail vortices if 0
+#define MAXNUMPARTICLES 140000 //max particles per wake
 
 namespace pawan{
 
@@ -60,20 +64,29 @@ class __wake{
          */
         __wake(PawanRecvData pawanrecvdata);
 
-    //! Destructor
+        //! For validation cases
+        __wake(__wake *W);
+        virtual void addParticles(__wake *W);
+
+        //! Destructor
 		/*
 		 * Deletes particles
 		 */
 		virtual ~__wake();
 
-        //!
-        /*
-         * Adds vortex particles as the Dymore coupling progresses
-         */
+        //! split particles in wake
+        virtual void split();
+        //! merge particles in wake
+        virtual void merge();
+        //! add relaxation to wake
+        virtual void relax();
+        virtual void getlfnvec(double* vec,const double* mat,const int rowsize,const int axis,const int offset, const int size);
+        //!Adds vortex particles as the Dymore coupling progresses
         virtual void addParticles(PawanRecvData pawanrecvdata);
-        //!
-        virtual void updateVinfEffect(double &dt, gsl_vector* states);
-        virtual void updateVinfEffect(double &dt);
+        //! translate particles with Vinf
+        virtual void updateVinfEffect(const double *Vinf, double &dt);
+        //! translate particles due to induced vel from bound vortices
+        virtual void updateBoundVorEffect(PawanRecvData pawanrecvdata,double &dt);
 		//! Print all wake particles
 		/*
 		 * Print wake particle information
@@ -136,6 +149,20 @@ class __wake{
 		 * \param x		Distance
 		 */
 		virtual void translate(const size_t &n, const double &x);
+
+        //! Translate
+        /*
+         * Translate wake structure
+         * \param x		3-element array denoting translation
+         */
+        virtual void translate(const double *x);
+        //! Elemental Rotation about a coordinate axis
+        /*
+         * Rotate wake structure
+         * \param n		axis
+         * \param a     angle in radian
+         */
+        virtual void rotate(const size_t &n,const double &a);
 };
 }
 #endif

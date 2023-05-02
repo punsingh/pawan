@@ -10,8 +10,16 @@
 
 pawan::__io::__io(){
     DOUT("----------------in pawan::__io::__io()");
-	_root = "../data/";
+    //_root = "../data/";
+	_root = "/home/HT/ge56beh/Work/pawan_my/data/";
 	_name = "temp";
+}
+
+pawan::__io::__io(std::string dymfilename){
+    DOUT("----------------in pawan::__io::__io()");
+    //_root = "../data/";
+    _root = "/home/HT/ge56beh/Work/pawan_my/data/";
+    _name = dymfilename+"Wake";
 }
 
 void pawan::__io::print(){
