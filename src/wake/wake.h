@@ -19,7 +19,7 @@
 #include "src/utils/gsl_utils.h"
 #include "src/networkinterface/networkdatastructures.h"
 #define SHEDVOR 1 //model only trail vortices if 0
-#define MAXNUMPARTICLES 140000 //max particles per wake
+#define MAXNUMPARTICLES 80000 //max particles per wake
 
 namespace pawan{
 

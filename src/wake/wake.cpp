@@ -76,7 +76,6 @@ void pawan::__wake::split(){
             gsl_blas_dscal(0.25*iradius/ivormag,deltapos);
 
             //add a particle at the end of array
-            npsplit++;
             size_t splitidx = _numParticles+npsplit;
             gsl_vector_view ipos_split = gsl_matrix_row(_position,splitidx);
             gsl_vector_memcpy(&ipos_split.vector,&ipos.vector);
@@ -94,6 +93,7 @@ void pawan::__wake::split(){
             gsl_vector_set(_birthstrength,i,0.5*ivormag);
 
             gsl_vector_free(deltapos);
+            npsplit++;
         }
     }
     _numParticles = _numParticles + npsplit;
@@ -173,7 +173,7 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
     int *NbOfAst = pawanrecvdata->NbOfAst;
     double *lfnlen = pawanrecvdata->lfnlen;
     //int spanres = pawanrecvdata->spanres;
-    int spanres = 20;  //number of particles over the span of a lfnline
+    int spanres = 15;  //number of particles over the span of a lfnline
     double acrossa = pawanrecvdata->acrossa;
     double deltat = pawanrecvdata->deltat;
     double *spandisc = pawanrecvdata->span_disc;
@@ -330,7 +330,7 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
             double voli = 0.05*hres;   //ip: not entirely sure about this (is this an empirical parameter??)
 
             double trailvorpos[3];
-            for(int jsta = 0; jsta<=(int)(del_teposmag/hres)+0.8; ++jsta ) {
+            for(int jsta = 0; jsta<=(int)(del_teposmag/hres); ++jsta ) {
                 //printf("spline = %10.5e %10.5e %10.5e %10.5e \n", ista, ista*1, ista*2.0, ista*2.0/hres);
                 //evaluate trailing vortex parameters corresponding to a airsta
                 if (del_teposmag != 0.0) {//in case lfnline is moving in inertial frame
@@ -389,7 +389,7 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
                                  - 0.5*(   gsl_spline_eval(circprev_spline, ista *     (1. / spanres),     accel_ptr)
                                          + gsl_spline_eval(circprev_spline, (ista+1) * (1. / spanres),     accel_ptr));
                     //placing shed vortex particle between two trailing vortex particles
-                    for(int ksta = 0; ksta<=(int)(del_teposmag/hres)+0.8; ++ksta ) {
+                    for(int ksta = 0; ksta<=(int)(del_teposmag/hres); ++ksta ) {
                         if (del_teposmag != 0.0) {//in case lfnline is moving in inertial frame
                             shedvorpos[0] = 0.5*(   tepos[0]     + ksta * ((teposprev[0]    + deltat*teconv[0]) - tepos[0]    ) / (del_teposmag / hres)
                                                   + tepos_nxt[0] + ksta * ((teposprev_nxt[0]+ deltat*teconv[0]) - tepos_nxt[0]) / (del_teposmag / hres));
