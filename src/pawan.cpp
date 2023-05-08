@@ -32,10 +32,10 @@ int main(int argc, char* argv[]){
 
     std::cout << std::setprecision(16) << std::scientific;
     PAWAN();
-    NetworkInterfaceTCP<OPawanRecvData,OPawanSendData>
-            networkCommunicatorTest(PORT, OUTPUTIP, PORT, NETWORKBUFFERSIZE, true);
 
     //%%%%%%%%%%%%     Dymore coupling    %%%%%%%%%%%%%%%%%%
+    NetworkInterfaceTCP<OPawanRecvData,OPawanSendData>
+            networkCommunicatorTest(PORT, OUTPUTIP, PORT, NETWORKBUFFERSIZE, true);
     networkCommunicatorTest.socket_init();
     OPawanRecvData opawanrecvdata;
     networkCommunicatorTest.recieve_data(opawanrecvdata);
@@ -45,18 +45,8 @@ int main(int argc, char* argv[]){
     pawan::__wake *W = new pawan::__wake(pawanrecvdata);
     //pawan::__interaction *S = new pawan::__interaction(W);
     pawan::__interaction *S = new pawan::__parallel(W);
-    //pawan::__integration *IN = new pawan::__integration(0.004705977,3);
-    pawan::__integration *IN = new pawan::__integration(0.70589655,450);
-    //pawan::__integration *IN = new pawan::__integration(0.141179312,90);
-    //pawan::__integration *IN = new pawan::__integration(0.3137318,180);
-    //pawan::__integration *IN = new pawan::__integration(0.00470597,3);
-    //pawan::__integration *IN = new pawan::__integration(0.01568659,10);
-    //pawan::__integration *IN = new pawan::__integration(0.07843295,50);
-    //pawan::__integration *IN = new pawan::__integration(0.03137318,20);
-    //pawan::__integration *IN = new pawan::__integration(0.3137318,200);
-    //pawan::__integration *IN = new pawan::__integration(0.1568659,500);
-    //pawan::__integration *IN = new pawan::__integration(0.1568659,100);
-    IN->integrate(S,IOdym,&networkCommunicatorTest,true,false);
+    pawan::__integration *IN = new pawan::__integration();
+    IN->integrate(S,IOdym,&networkCommunicatorTest,false);
     delete IN;
     delete S;
     delete IOdym;
@@ -105,7 +95,7 @@ int main(int argc, char* argv[]){
     //pawan::__integration *INvring = new pawan::__rk4(0.01,1);
     //pawan::__integration *INvring = new pawan::__rk4(25,500);
 
-    INvring->integrate(Svring,IOvrings,&networkCommunicatorTest,false,true);
+    INvring->integrate(Svring,IOvrings,true);
 
     delete Svring;
     delete INvring;
@@ -139,7 +129,7 @@ int main(int argc, char* argv[]){
     pawan::__interaction *Svring = new pawan::__parallel(Wvring1,Wvring2);
     pawan::__integration *INvring = new pawan::__rk4(25,500);
     pawan::__io *IOvrings = new pawan::__io("vring4by80_1and2_fissionfusion");
-    INvring->integrate(Svring,IOvrings,&networkCommunicatorTest,false,false);
+    INvring->integrate(Svring,IOvrings,false);
     delete Svring;delete INvring;delete R;delete S1;delete S2;delete W1;delete W2;
     delete Wvring1;delete Wvring2;delete IOvring1;delete IOvring2;delete IOvrings;
 */
@@ -184,7 +174,7 @@ int main(int argc, char* argv[]){
     pawan::__integration *INvring = new pawan::__integration(5,100);
     //pawan::__integration *INvring = new pawan::__rk4(5,100);
 
-    INvring->integrate(Svring,IOvring,&networkCommunicatorTest,false,true);
+    INvring->integrate(Svring,IOvring,true);
 
     delete R;
     delete S;
@@ -195,5 +185,5 @@ int main(int argc, char* argv[]){
     delete IOvring;
 
     return EXIT_SUCCESS;
-    */
+*/
 }

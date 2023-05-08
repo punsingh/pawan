@@ -45,7 +45,8 @@ class __integration{
 		 * \param	n	Number of time steps
 		 */
 		__integration(const double &t, const size_t &n);
-		
+        __integration();
+
 		//! Destructor
 		/*
 		 * Deletes particles
@@ -61,7 +62,9 @@ class __integration{
         void integrate(__system *S,
                        __io *IO,
                        NetworkInterfaceTCP<OPawanRecvData,OPawanSendData> *networkCommunicatorTest,
-                       bool coupling=false,
+                       bool diagnose=false);
+        void integrate(__system *S,
+                       __io *IO,
                        bool diagnose=false);
 
 };

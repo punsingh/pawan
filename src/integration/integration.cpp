@@ -15,11 +15,15 @@ pawan::__integration::__integration(const double &t, const size_t &n){
 	_n = n;
 }
 
+pawan::__integration::__integration(){
+    _dt = 0.0;
+    _t = 0.0;
+    _n = 0;
+}
+
 void pawan::__integration::integrate(__system *S,
                                      __io *IO,
-                                     NetworkInterfaceTCP<OPawanRecvData,OPawanSendData> *networkCommunicatorTest,
-                                     bool coupling,
-                                     bool diagnose){
+                                     bool diagnose) {
     gsl_vector *states = gsl_vector_calloc(S->_totalmaxsize); //ip: have the *rates pointer here outside too for speed up
     FILE *f = IO->create_binary_file(".wake");
     FILE *fdiag = IO->create_binary_file(".diagnosis");
@@ -48,23 +52,61 @@ void pawan::__integration::integrate(__system *S,
             fwrite(&t,sizeof(double),1,fdiag);
             S->writediagnosis(fdiag);
         }
+    }
+    fclose(f);
+    double tEnd = TIME();
+    OUT("Total Time (s)",tEnd - tStart);
+    gsl_vector_free(states);
+}
 
-        if (coupling) {
-            OPawanRecvData opawanrecvdata;//create it once outside the loop
-            networkCommunicatorTest->getrecieveBuffer(opawanrecvdata);
-            S->updateVinfEffect(opawanrecvdata.Vinf,_dt);
-            //S->updateBoundVorEffect(&opawanrecvdata,_dt);
+void pawan::__integration::integrate(__system *S,
+                                     __io *IO,
+                                     NetworkInterfaceTCP<OPawanRecvData,OPawanSendData> *networkCommunicatorTest,
+                                     bool diagnose){
+    double tStart = TIME();
+    gsl_vector *states = gsl_vector_calloc(S->_totalmaxsize); //ip: have the *rates pointer here outside too for speed up
+    FILE *fdiag = IO->create_binary_file(".diagnosis");
+    OPawanRecvData opawanrecvdata;
+    networkCommunicatorTest->getrecieveBuffer(opawanrecvdata);
+    _t = opawanrecvdata.t;
+    FILE *f = IO->create_binary_file(".wake");
+    if(diagnose) {
+        S->writenu(fdiag);
+        S->diagnose();
+        fwrite(&_t,sizeof(double),1,fdiag);
+        S->writediagnosis(fdiag);
+    }
 
-            OPawanSendData opawansenddata;//create it once outside the loop and should be good
-            S->getInflow(&opawanrecvdata,&opawansenddata);
-            networkCommunicatorTest->send_data(opawansenddata);
-            if (i != _n) {
-                //S->diagnose();
-                OPawanRecvData opawanrecvdata;
-                networkCommunicatorTest->recieve_data(opawanrecvdata);
-                S->addParticles(&opawanrecvdata);
-            }
+    size_t stepnum = 0;
+    while(_t <= opawanrecvdata.tfinal){
+        OUT("\tTime",_t);
+        OUT("\tStepNum",stepnum);
+        S->getStates(states);
+        step(opawanrecvdata.deltat,S,states);
+        S->relax();
+        if(diagnose){
+            S->diagnose();
+            fwrite(&_t,sizeof(double),1,fdiag);
+            S->writediagnosis(fdiag);
         }
+        S->updateVinfEffect(opawanrecvdata.Vinf,opawanrecvdata.deltat);
+        //S->updateBoundVorEffect(&opawanrecvdata,_dt);
+        fwrite(&_t,sizeof(double),1,f);
+        S->write(f);  //write particles info after interaction in this time step
+
+        OPawanSendData opawansenddata;//create it once outside the loop and should be good
+        S->getInflow(&opawanrecvdata,&opawansenddata);
+        networkCommunicatorTest->send_data(opawansenddata);
+
+        //S->diagnose();
+        if(_t <= (opawanrecvdata.tfinal - 1*opawanrecvdata.deltat)){ //run till end of dymore sim
+            networkCommunicatorTest->recieve_data(opawanrecvdata);
+            S->addParticles(&opawanrecvdata);
+            _t = opawanrecvdata.t;
+        }
+        else
+            break;
+        stepnum = stepnum+1;
     }
     fclose(f);
     double tEnd = TIME();

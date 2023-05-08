@@ -407,6 +407,7 @@ void pawan::__interaction::getInflow(PawanRecvData pawanrecvdata, PawanSendData 
     }
     int astidx = 0;
     for (size_t ilfn = 0; ilfn < NbOfLfnLines; ++ilfn) {
+        printf("------------------------------\n");
         for (size_t iast = 0; iast < NbOfAst[ilfn]; ++iast) {
             gsl_vector *vbi = gsl_vector_calloc(3);
             gsl_vector *rast = gsl_vector_calloc(3);
