@@ -34,6 +34,7 @@ class readWake:
         self.active = []
         self.volume = []
         self.birthstrength = []
+        stepnum=0
         while len(fileContent)>0:
             [t,nmax,n,p,q,r,a,v,b,fileContent] = self.getAllWakeState(fileContent)
             self.time.append(t)
@@ -45,6 +46,8 @@ class readWake:
             self.active.append(a)
             self.volume.append(v)
             self.birthstrength.append(b)
+            stepnum=stepnum+1
+            # if stepnum>100: break
         self.nTimesteps = len(self.time)
     
     def getInteger(self,fileContent):

@@ -74,7 +74,6 @@ def show_wing2(data_geom):
 show_geom = True
 show_geom = False
 
-
 print('running...')
 directry = "../data"
 runfiles = [
@@ -89,8 +88,10 @@ runfiles = [
             # "wing_elliptical_pitchingPawan"
 
             # "1994_Run15_5_hover_rigidrunupPawan"
-                "1994_Run15_5_hover_rigidshaftrigidrotorrunupPawan"
-
+                # "1994_Run15_5_hover_rigidshaftrigidrotorrunupPawan"
+                # "1994_Run42_7_baselinePetersUnsteady_elasticshaftelasticrotorrunupPawan",
+                "1994_Run26_11_baselinePetersUnsteady_elasticshaftelasticrotorrunupPawan",
+                # "1994_Run57_7_baselinePetersUnsteady_elasticshaftelasticrotorrunupPawan",
             # "temp",
             # "vring_4by80"
             # "vring_5by100"
@@ -158,6 +159,7 @@ tp.macro.execute_command('''$!Rotate3DView Z
   Angle = 180
   RotateOriginLocation = DefinedOrigin''')
 # tp.active_frame().plot().contour(0).levels.reset_levels([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])#, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+tp.active_frame().plot().contour(0).levels.reset_levels([0,0.5, 1,1.5, 2, 2.5, 3,])
 tp.active_frame().plot().contour(0).levels.reset_to_nice()
 tp.active_frame().plot(PlotType.Cartesian3D).vector.u_variable_index=3
 tp.active_frame().plot(PlotType.Cartesian3D).vector.v_variable_index=4
@@ -166,9 +168,3 @@ tp.active_frame().plot().show_vector=True
 tp.active_frame().plot(PlotType.Cartesian3D).vector.relative_length=1
 
 tp.active_frame().plot().axes.z_axis.scale_factor=1
-
-
-# import math
-# from scipy import special
-# (1/(4*3.14*0.8*0.8*0.8))*special.erf(0.8*0.707/0.15)-(1/(2*3.14)**1.5)*(1/(0.15*0.8*0.8))*math.exp(-(0.8*0.8/(2*0.15*0.15)))
-
