@@ -19,7 +19,7 @@
 #include "src/utils/gsl_utils.h"
 #include "src/networkinterface/networkdatastructures.h"
 #define SHEDVOR 1 //model only trail vortices if 0
-#define MAXNUMPARTICLES 80000 //max particles per wake
+#define MAXNUMPARTICLES 50000 //max particles per wake
 
 namespace pawan{
 
@@ -42,6 +42,8 @@ class __wake{
         size_t _maxsize;			/*!< Max size of state vector with particle entries */
 		size_t _numParticles;		/*!< Number of vortex particles */
         size_t _maxnumParticles;	/*!< Max expected number of vortex particles */
+		size_t _npidx;              /*!< Particle tracking index when MAXNUMPARTICLES reached during coupling */
+        bool _maxmem;                /*!< tracks whether maximum memory reached */
 		gsl_matrix *_position;		/*!< Particle positions */
 		gsl_matrix *_velocity;		/*!< Particle velocity */
 		gsl_matrix *_vorticity;		/*!< Particle vorticities */

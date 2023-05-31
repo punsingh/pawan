@@ -26,6 +26,8 @@ void pawan::__wake::create_particles(const int &n){
 
 void pawan::__wake::initialise_memory(){
     DOUT("------------------------------------------------------in pawan::__wake::create_particles()");
+    _npidx  = 0;
+    _maxmem = false;
     _numParticles = 0; //no particle info in arrays yet
     _size = 2*_numParticles*3; //this becomes irrelevant in the case of large memory allocation
     _maxnumParticles = MAXNUMPARTICLES;
@@ -58,7 +60,7 @@ pawan::__wake::__wake(){
 
 void pawan::__wake::split(){
 
-    size_t npsplit = 0;//number of particles added by splitting
+    //size_t npsplit = 0;//number of particles added by splitting
     for(size_t i = 0; i<_numParticles; ++i){
         double ibirthstrength = gsl_vector_get(_birthstrength,i);
         gsl_vector_view ipos = gsl_matrix_row(_position,i);
@@ -75,17 +77,16 @@ void pawan::__wake::split(){
             gsl_vector_memcpy(deltapos,&ivor.vector);
             gsl_blas_dscal(0.25*iradius/ivormag,deltapos);
 
-            //add a particle at the end of array
-            size_t splitidx = _numParticles+npsplit;
-            gsl_vector_view ipos_split = gsl_matrix_row(_position,splitidx);
+            //add a particle
+            gsl_vector_view ipos_split = gsl_matrix_row(_position,_npidx);
             gsl_vector_memcpy(&ipos_split.vector,&ipos.vector);
             gsl_vector_add(&ipos_split.vector,deltapos);
-            gsl_vector_view ivor_split = gsl_matrix_row(_vorticity,splitidx);
+            gsl_vector_view ivor_split = gsl_matrix_row(_vorticity,_npidx);
             gsl_vector_memcpy(&ivor_split.vector,&ivor.vector);
             gsl_blas_dscal(0.5,&ivor_split.vector);
-            gsl_vector_set(_radius,splitidx,iradius);
-            gsl_vector_set(_volume,splitidx,ivol);  //need to confirm this
-            gsl_vector_set(_birthstrength,splitidx,0.5*ivormag);
+            gsl_vector_set(_radius,_npidx,iradius);
+            gsl_vector_set(_volume,_npidx,ivol);  //need to confirm this
+            gsl_vector_set(_birthstrength,_npidx,0.5*ivormag);
 
             //replace particle parameters in-place
             gsl_vector_sub(&ipos.vector,deltapos);
@@ -93,10 +94,17 @@ void pawan::__wake::split(){
             gsl_vector_set(_birthstrength,i,0.5*ivormag);
 
             gsl_vector_free(deltapos);
-            npsplit++;
+            _npidx++;
+            if(_npidx==MAXNUMPARTICLES){
+                _npidx = 0;
+                _numParticles = MAXNUMPARTICLES;
+                _maxmem = true;
+            }
+            if(!_maxmem)
+                _numParticles = _npidx;
         }
     }
-    _numParticles = _numParticles + npsplit;
+    //_numParticles = _numParticles + npsplit;
     _size = 2*_numParticles*3;
 }
 
@@ -168,12 +176,13 @@ void pawan::__wake::getlfnvec(double* vec,
 
 void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
     OUT("_numParticles",_numParticles);
+    OUT("_npidx",_npidx);
     double *Vinf = pawanrecvdata->Vinf;
     int NbOfLfnLines = pawanrecvdata->NbOfLfnLines;
     int *NbOfAst = pawanrecvdata->NbOfAst;
     double *lfnlen = pawanrecvdata->lfnlen;
     //int spanres = pawanrecvdata->spanres;
-    int spanres = 15;  //number of particles over the span of a lfnline
+    int spanres = 10;  //number of particles over the span of a lfnline
     double acrossa = pawanrecvdata->acrossa;
     double deltat = pawanrecvdata->deltat;
     double *spandisc = pawanrecvdata->span_disc;
@@ -185,7 +194,6 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
     double *astvel = pawanrecvdata->astvel;
 
     double Vinfmag = sqrt(Vinf[0]*Vinf[0] + Vinf[1]*Vinf[1] + Vinf[2]*Vinf[2]);
-    int npidx = _numParticles; //new particle index start
     int astidx = 0;
     int offsetrows=0;
     for(size_t ilfn = 0; ilfn<NbOfLfnLines; ++ilfn) {
@@ -326,7 +334,11 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
             if (ista == spanres)
                 trailvormag = circ_lfn[NbOfAst[ilfn] - 1];//last airstation gives anticlockwise vortex
                                                           //anticlockwise vortex is +ve
-            double alphai = trailvormag*hres;
+            double alphai;
+            if(ista<0.2*(spanres + 1))
+                alphai = trailvormag*hres* ista/(0.2*(spanres + 1));
+            else
+                alphai = trailvormag*hres;
             double voli = 0.05*hres;   //ip: not entirely sure about this (is this an empirical parameter??)
 
             double trailvorpos[3];
@@ -343,17 +355,24 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
                     trailvorpos[2] = tepos[2];
                 }
                 for (int k = 0; k < 3; ++k) {
-                    gsl_matrix_set(_position, npidx, k, trailvorpos[k]);
-                    gsl_matrix_set(_vorticity, npidx, k, localflowdir[k] * alphai);
-                    gsl_matrix_set(_vorticityfield, npidx, k, 0.0); //later
+                    gsl_matrix_set(_position, _npidx, k, trailvorpos[k]);
+                    gsl_matrix_set(_vorticity, _npidx, k, localflowdir[k] * alphai);
+                    gsl_matrix_set(_vorticityfield, _npidx, k, 0.0); //later
                 }
-                gsl_vector_set(_radius, npidx, sigma);
-                gsl_vector_set(_volume, npidx, voli);
-                gsl_vector_set(_birthstrength, npidx, fabs(alphai));
-                gsl_vector_set(_active, npidx, 1.0);//unsused for now
-                if (npidx == 0)
+                gsl_vector_set(_radius, _npidx, sigma);
+                gsl_vector_set(_volume, _npidx, voli);
+                gsl_vector_set(_birthstrength, _npidx, fabs(alphai));
+                gsl_vector_set(_active, _npidx, 1.0);//unsused for now
+                if (_npidx == 0)
                     printf("First particle created at : %8.3e, %8.3e, %8.3e \n", trailvorpos[0], trailvorpos[1],trailvorpos[2]);
-                npidx++;
+                _npidx++;
+                if(_npidx==MAXNUMPARTICLES){
+                    _npidx = 0;
+                    _numParticles = MAXNUMPARTICLES;
+                    _maxmem = true;
+                }
+                if(!_maxmem)
+                    _numParticles = _npidx;
             }
             if (SHEDVOR) {
                 //evaluate shed vortex parameters corresponding to a airsta
@@ -408,16 +427,24 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
                         }
                         double alphai_shed = shedvormag*hres;
                         for (int k = 0; k < 3; ++k) {
-                            gsl_matrix_set(_position, npidx, k, shedvorpos[k]);
-                            gsl_matrix_set(_vorticity, npidx, k, shedvordir[k] * alphai_shed/shedvordirmag);
-                            gsl_matrix_set(_vorticityfield, npidx, k, 0.0); //later
+                            gsl_matrix_set(_position, _npidx, k, shedvorpos[k]);
+                            gsl_matrix_set(_vorticity, _npidx, k, shedvordir[k] * alphai_shed/shedvordirmag);
+                            gsl_matrix_set(_vorticityfield, _npidx, k, 0.0); //later
                         }
-                        gsl_vector_set(_radius, npidx, sigma);
-                        gsl_vector_set(_volume, npidx, voli);
-                        gsl_vector_set(_birthstrength, npidx, fabs(alphai_shed));
-                        gsl_vector_set(_active, npidx, 1.0);//unsused for now
+                        gsl_vector_set(_radius, _npidx, sigma);
+                        gsl_vector_set(_volume, _npidx, voli);
+                        gsl_vector_set(_birthstrength, _npidx, fabs(alphai_shed));
+                        gsl_vector_set(_active, _npidx, 1.0);//unsused for now
 
-                        npidx++;
+                        _npidx++;
+                        if(_npidx==MAXNUMPARTICLES){
+                            _npidx = 0;
+                            _numParticles = MAXNUMPARTICLES;
+                            _maxmem = true;
+                        }
+                        if(!_maxmem)
+                            _numParticles = _npidx;
+
                     }
                 }
             }
@@ -441,7 +468,6 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata){
         free(astvelx_lfn);free(astvely_lfn);free(astvelz_lfn);
 
     }
-    _numParticles = npidx;
     _size = 2*_numParticles*3;
 }
 pawan::__wake::__wake(PawanRecvData pawanrecvdata){
@@ -512,7 +538,7 @@ void pawan::__wake::updateBoundVorEffect(PawanRecvData pawanrecvdata,double &dt)
                 gsl_vector *rast1r = gsl_vector_calloc(3);
                 gsl_vector_memcpy(rast12,rast2);
                 gsl_vector_sub(rast12,rast1);
-                double span = gsl_blas_dnrm2(rast12);
+                double span = gsl_blas_dnrm2(rast12); //blade element span
                 gsl_vector_memcpy(rast1r,&r.vector);
                 gsl_vector_sub(rast1r,rast1);
                 gsl_blas_ddot(rast1r,rast12,&t);
@@ -540,17 +566,17 @@ void pawan::__wake::updateBoundVorEffect(PawanRecvData pawanrecvdata,double &dt)
                 alpha = acos(-alpha/gsl_blas_dnrm2(rast2r)/span);
                 double beta = 0.0;
                 gsl_blas_ddot(rast1r,rast12,&beta);
-                beta = acos(-beta/gsl_blas_dnrm2(rast1r)/span);
+                beta = acos(beta/gsl_blas_dnrm2(rast1r)/span);
 
                 double circ1 = circ[astidx];
                 double circ2 = circ[astidx+1];
                 //t can be -ve
-                double gamma0 = (circ1*fabs(span*(1+t)) + circ2*fabs(t*span))/span;
+                double gamma0 = (circ1*fabs(span*(1-t)) + circ2*fabs(t*span))/(span*span);
                 double gamma1 = (circ2-circ1)/span;
                 gsl_vector *vbi = gsl_vector_calloc(3);
                 gsl_cross(licap,sicap,vbi);
                 gsl_blas_dscal(0.25*M_1_PI/simag,vbi);
-                double factor =gamma0*(cos(beta)+cos(alpha)) + simag*gamma1*(sin(beta)-sin(alpha));
+                double factor =span*gamma0*(cos(beta)+cos(alpha)) + simag*gamma1*(sin(beta)-sin(alpha));
                 gsl_blas_dscal(factor,vbi);
 
                 gsl_vector_add(vb,vbi);
