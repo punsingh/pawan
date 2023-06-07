@@ -11,8 +11,8 @@
 pawan::__interaction::__interaction(){
     DOUT("--------------------------------in pawan::__interaction::__interaction()");
 	//_nu = 2.0e-2;
-	//_nu = 2.5e-3;
-    _nu = 1.56e-5;
+	//_nu = 2.5e-3;   //vring
+    _nu = 1.56e-5;    //coupling
     //_nu = 0.0;
 	_nWake = 0;
 	_totalVorticity = gsl_vector_calloc(3);
@@ -364,18 +364,18 @@ void pawan::__interaction::getStates(gsl_vector *state){
 	}
 }
 
-void pawan::__interaction::relax(){
+void pawan::__interaction::relax(size_t &stepnum){
     size_t offset = 0;
     for(auto &w: _W){
-        w->relax();
+        w->relax(stepnum);
         offset += w->_maxsize;
     }
 }
 
-void pawan::__interaction::addParticles(PawanRecvData pawanrecvdata){
+void pawan::__interaction::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
     size_t offset = 0;
     for(auto &w: _W){
-        w->addParticles(pawanrecvdata);
+        w->addParticles(pawanrecvdata,stepnum);
         offset += w->_maxsize;
     }
 }

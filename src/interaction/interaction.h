@@ -241,9 +241,9 @@ class __interaction : public __system{
 		virtual void getStates(gsl_vector *state);
 
         //! add relaxation to wake system
-        virtual void relax();
+        virtual void relax(size_t &stepnum);
 		//! add new particles
-		virtual void addParticles(PawanRecvData pawanrecvdata);
+		virtual void addParticles(PawanRecvData pawanrecvdata,size_t &stepnum);
         //! translate particles with Vinf
         virtual void updateVinfEffect(const double *Vinf,double &dt);
         //! translate particles due to induced vel from bound vortices
