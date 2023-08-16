@@ -20,6 +20,7 @@
 #include "src/integration/integration.h"
 #include "src/resolve/resolve.h"
 #include "src/integration/rk4.h"
+#include "src/integration/rk3.h"
 #include "src/networkinterface/networkdatastructures.h"
 #include "src/networkinterface/networkinterface.h"
 #include "src/networkinterface/networkinterface.cpp" //templates included this way
@@ -51,23 +52,13 @@ int main(int argc, char* argv[]){
     delete S;
     delete IOdym;
 
-
-/*    //%%%%%%%%%%%%     Fusion rings    %%%%%%%%%%%%%%%%%%
-    //pawan::__wake *W1 = new pawan::__vring(1.0,0.1,4,80,0.1);
-    //pawan::__io *IOvring1 = new pawan::__io("vring4by80_1");
-    //pawan::__wake *W2 = new pawan::__vring(1.0,0.1,4,80,0.1);
-    //pawan::__io *IOvring2 = new pawan::__io("vring4by80_2");
-    //pawan::__io *IOvrings = new pawan::__io("vring4by80_vring4by80_eulerfusion");
-    //pawan::__wake *W1 = new pawan::__vring(1.0,0.1,5,100,0.0840);
-    //pawan::__io *IOvring1 = new pawan::__io("vring5by100_1");
-    //pawan::__wake *W2 = new pawan::__vring(1.0,0.1,5,100,0.0840);
-    //pawan::__io *IOvring2 = new pawan::__io("vring5by100_2");
-    //pawan::__io *IOvrings = new pawan::__io("vring5by100_vring5by100_eulerfusion");
+/*
+    //%%%%%%%%%%%%     Fusion rings    %%%%%%%%%%%%%%%%%%
     pawan::__wake *W1 = new pawan::__vring(1.0,0.1,3,49,0.1924);
     pawan::__io *IOvring1 = new pawan::__io("vring3by49_1");
     pawan::__wake *W2 = new pawan::__vring(1.0,0.1,3,49,0.1924);
     pawan::__io *IOvring2 = new pawan::__io("vring3by49_2");
-    pawan::__io *IOvrings = new pawan::__io("vring3by49_vring3by49_eulerfusion");
+    pawan::__io *IOvrings = new pawan::__io("vring3by49vring3by49fusion_rk4");
 
     //pawan::__interaction *S = new pawan::__interaction(W1);
     pawan::__interaction *S1 = new pawan::__parallel(W1);
@@ -81,19 +72,16 @@ int main(int argc, char* argv[]){
 
     pawan::__wake *Wvring1 = new pawan::__wake(W1);
     pawan::__wake *Wvring2 = new pawan::__wake(W2);
-    Wvring1->rotate(1,M_1_PI/6);  //rotate about y-axis by 15 deg
-    Wvring2->rotate(1,-M_1_PI/6); //rotate about y-axis by -15 deg
+    Wvring1->rotate(1,M_1_PI/12);  //rotate about y-axis by 15 deg
+    Wvring2->rotate(1,-M_1_PI/12); //rotate about y-axis by -15 deg
     double translate_vec[3]={2.7,0.,0.};
     Wvring2->translate(translate_vec);
 
-    //pawan::__interaction *Svring = new pawan::__interaction(Wvring);
     pawan::__interaction *Svring = new pawan::__parallel(Wvring1,Wvring2);
 
     //relaxed -diverges at 196 steps, normal - diverges at 300
-    pawan::__integration *INvring = new pawan::__integration(15,300);
-    //pawan::__integration *INvring = new pawan::__integration(9.75,195);
-    //pawan::__integration *INvring = new pawan::__rk4(0.01,1);
-    //pawan::__integration *INvring = new pawan::__rk4(25,500);
+    //pawan::__integration *INvring = new pawan::__integration(8,160);
+    pawan::__integration *INvring = new pawan::__rk4(8,160);
 
     INvring->integrate(Svring,IOvrings,true);
 
@@ -113,10 +101,12 @@ int main(int argc, char* argv[]){
 */
 /*
     //%%%%%%%%%%%%     Fission-Fusion rings    %%%%%%%%%%%%%%%%%%
-    pawan::__wake *W1 = new pawan::__vring(1.0,0.1,4,80,0.1);
-    pawan::__io *IOvring1 = new pawan::__io("vring4by80_1");
-    pawan::__wake *W2 = new pawan::__vring(1.0,0.1,4,80,0.1);
-    pawan::__io *IOvring2 = new pawan::__io("vring4by80_2");
+    pawan::__wake *W1 = new pawan::__vring(1.0,0.125,2,52,0.1562);
+    pawan::__io *IOvring1 = new pawan::__io("vring2by52_1");
+    pawan::__wake *W2 = new pawan::__vring(1.0,0.125,2,52,0.1562);
+    pawan::__io *IOvring2 = new pawan::__io("vring2by52_2");
+    pawan::__io *IOvrings = new pawan::__io("vring2by52vring2by52fissionfusion_rk4");
+
     pawan::__interaction *S1 = new pawan::__parallel(W1);
     pawan::__interaction *S2 = new pawan::__parallel(W2);
     pawan::__resolve *R = new pawan::__resolve();
@@ -124,12 +114,11 @@ int main(int argc, char* argv[]){
     R->rebuild(S2,IOvring2);printf("resolved ring 1 \n");
     pawan::__wake *Wvring1 = new pawan::__wake(W1);
     pawan::__wake *Wvring2 = new pawan::__wake(W2);
-    Wvring1->rotate(1,M_1_PI/4); Wvring2->rotate(1,-M_1_PI/4);
-    double translate_vec[3]={2.7,0.,0.};Wvring2->translate(translate_vec);
+    Wvring1->rotate(1,M_1_PI/6); Wvring2->rotate(1,-M_1_PI/6);
+    double translate_vec[3]={3.0,0.,0.};Wvring2->translate(translate_vec);
     pawan::__interaction *Svring = new pawan::__parallel(Wvring1,Wvring2);
-    pawan::__integration *INvring = new pawan::__rk4(25,500);
-    pawan::__io *IOvrings = new pawan::__io("vring4by80_1and2_fissionfusion");
-    INvring->integrate(Svring,IOvrings,false);
+    pawan::__integration *INvring = new pawan::__rk4(30,600);
+    INvring->integrate(Svring,IOvrings,true);
     delete Svring;delete INvring;delete R;delete S1;delete S2;delete W1;delete W2;
     delete Wvring1;delete Wvring2;delete IOvring1;delete IOvring2;delete IOvrings;
 */
