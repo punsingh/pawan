@@ -61,18 +61,18 @@ pawan::__wake::__wake(){
 void pawan::__wake::split(size_t &stepnum){
 
     //split particles only after a certain age
-    for(size_t i = 0; i<_numParticles && gsl_vector_get(_active,i)>360; ++i){
+    for(size_t i = 0; i<_numParticles && stepnum-gsl_vector_get(_active,i)>45; ++i){
         double ibirthstrength = gsl_vector_get(_birthstrength,i);
-        gsl_vector_view ipos = gsl_matrix_row(_position,i);
         gsl_vector_view ivor = gsl_matrix_row(_vorticity,i);
         double ivormag = gsl_blas_dnrm2(&ivor.vector);
-        double iradius = gsl_vector_get(_radius,i);
-        double ivol = gsl_vector_get(_volume,i);
 
         //can this be parallelised when all threads could be changing
         // _vorticity and _position at the same time?
         if(ivormag>=2*ibirthstrength && ibirthstrength>0.0001) {//ip: hard-coded, a more appropriate condition needs to be found
             printf("splitting!!!--------- %d --------- ", i);
+            gsl_vector_view ipos = gsl_matrix_row(_position,i);
+            double iradius = gsl_vector_get(_radius,i);
+            double ivol = gsl_vector_get(_volume,i);
             gsl_vector *deltapos = gsl_vector_calloc(3);
             gsl_vector_memcpy(deltapos,&ivor.vector);
             gsl_blas_dscal(0.25*iradius/ivormag,deltapos);
@@ -87,6 +87,7 @@ void pawan::__wake::split(size_t &stepnum){
             gsl_vector_set(_radius,_npidx,iradius);
             gsl_vector_set(_volume,_npidx,ivol);  //need to confirm this
             gsl_vector_set(_birthstrength,_npidx,0.5*ivormag);
+            gsl_vector_set(_active,_npidx,gsl_vector_get(_active,i));  //split particle age same as parent particle
 
             //replace particle parameters in-place
             gsl_vector_sub(&ipos.vector,deltapos);
@@ -111,7 +112,7 @@ void pawan::__wake::split(size_t &stepnum){
 void pawan::__wake::merge(size_t &stepnum){
 
     int npmerge = 0;//number of particles 'lost' due to merging
-    for(size_t i = 0; i<_numParticles && gsl_vector_get(_active,i)>360; ++i){//merge particles only after a certain age
+    for(size_t i = 0; i<_numParticles && stepnum-gsl_vector_get(_active,i)>45; ++i){//merge particles only after a certain age
         gsl_vector_view ipos = gsl_matrix_row(_position,i);
         gsl_vector_view ivor = gsl_matrix_row(_vorticity,i);
         double ivormag = gsl_blas_dnrm2(&ivor.vector);
@@ -141,7 +142,7 @@ void pawan::__wake::merge(size_t &stepnum){
                     gsl_vector_memcpy(tmp,&jpos.vector);
                     gsl_blas_dscal(jvormag,tmp);
                     gsl_vector_add(ipos_m,tmp);
-                    gsl_blas_dscal(ivormag+jvormag,ipos_m);
+                    gsl_blas_dscal(1/(ivormag+jvormag),ipos_m);
                     gsl_vector_memcpy(&ipos.vector,ipos_m);    //in-place replacement
                     gsl_vector_add(&ivor.vector,&jvor.vector);
 
