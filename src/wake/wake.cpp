@@ -183,6 +183,10 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
     int NbOfLfnLines = pawanrecvdata->NbOfLfnLines;
     int *NbOfAst = pawanrecvdata->NbOfAst;
     double *lfnlen = pawanrecvdata->lfnlen;
+    int trailvor = pawanrecvdata->trailvor;
+    int shedvor = pawanrecvdata->shedvor;
+    int suprootvor = pawanrecvdata->suprootvor;
+    int infl2D = pawanrecvdata->infl2D;
     //int spanres = pawanrecvdata->spanres;
     int spanres = 20;  //number of particles over the span of a lfnline
     double acrossa = pawanrecvdata->acrossa;
@@ -281,16 +285,16 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
         }
 
         double sigma = 0.0;
-        double hres = lfnlen[ilfn]/spanres;
-        if(SHEDVOR)
+        double hres;// = lfnlen[ilfn]/spanres;
+        if(shedvor && trailvor)
             hres =  lfnlen[ilfn] / (2 * spanres - 1);
         else
             hres = lfnlen[ilfn] / spanres;
         sigma = 1.5 * hres;
 
         for (int ista = 0; ista < spanres + 1; ++ista) {//new discretized station index
-            sectidx = ilfn*(spanres+1)+ista;
-            bool addTEpart = false;
+            sectidx = ilfn * (2 * spanres + 1) + 2 * ista;
+            bool dontaddTEpart = true;  //whether to add particles right at the TE
 
             double tepos[3];
             tepos[0] = gsl_spline_eval(TEposx_spline, ista * (1. / spanres), accel_ptr);
@@ -300,17 +304,13 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
             teposprev[0] = gsl_spline_eval(TEposxprev_spline, ista * (1. / spanres), accel_ptr);
             teposprev[1] = gsl_spline_eval(TEposyprev_spline, ista * (1. / spanres), accel_ptr);
             teposprev[2] = gsl_spline_eval(TEposzprev_spline, ista * (1. / spanres), accel_ptr);
-            double teconv[3];//convection velocity of vparticles at TE
-            teconv[0] = Vinf[0];
-            teconv[1] = Vinf[1];
-            teconv[2] = Vinf[2];
             double del_teposmag;
-            double lastpart[3];
-            if (stepnum==0){
-                gsl_matrix_set(_initTEpos, sectidx, 0,teposprev[0]);
-                gsl_matrix_set(_initTEpos, sectidx, 1,teposprev[1]);
-                gsl_matrix_set(_initTEpos, sectidx, 2,teposprev[2]);
-                addTEpart = true;
+            double lastpart[3]; //coordinates of last particle to emanate from a section ista
+            if (stepnum == 0) {
+                gsl_matrix_set(_initTEpos, sectidx, 0, teposprev[0]);
+                gsl_matrix_set(_initTEpos, sectidx, 1, teposprev[1]);
+                gsl_matrix_set(_initTEpos, sectidx, 2, teposprev[2]);
+                dontaddTEpart = false; //add particle right at the TE only for the first time step
             }
             if (gsl_vector_get(_lastsectpartnpidx, sectidx)!=DBL_MAX) {
                 lastpart[0] = gsl_matrix_get(_position, gsl_vector_get(_lastsectpartnpidx, sectidx), 0);
@@ -352,48 +352,58 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
                 trailvormag = circ_lfn[NbOfAst[ilfn] - 1];//last airstation gives anticlockwise vortex
                                                           //anticlockwise vortex is +ve
             double alphai;
-            if(ista<0.2*(spanres + 1) && stepnum<360) //suppressing effect of root vortices (avoid fountain effect in hover)
-                alphai = trailvormag*hres* ista/(0.2*(spanres + 1));
-            else
-                alphai = trailvormag*hres;
-            double voli = 0.05*hres;   //ip: not entirely sure about this (is this an empirical parameter??)
+            //alphai = trailvormag*hres;
+            if (suprootvor) {
+                int transient_steps = 360;
+                if (ista < 0.2 * (spanres + 1) &&
+                    stepnum < transient_steps) //suppressing effect of root vortices (avoid fountain effect in hover)
+                    //alphai = trailvormag*hres* ista/(0.2*(spanres + 1));
+                    alphai = trailvormag * hres * stepnum / transient_steps;
+            } else
+                alphai = trailvormag * hres;
+
+            double voli = 0.05 * hres;   //ip: not entirely sure about this (is this an empirical parameter??)
 
             double trailvorpos[3];
-            for(int jsta = int(addTEpart); jsta<=(int)(del_teposmag/hres); ++jsta ) {
-                //evaluate trailing vortex parameters corresponding to a airsta
-                if (del_teposmag != 0.0) {//in case lfnline is moving in inertial frame
-                    trailvorpos[0] = lastpart[0] + jsta * (tepos[0] - (lastpart[0])) / (del_teposmag / hres);
-                    trailvorpos[1] = lastpart[1] + jsta * (tepos[1] - (lastpart[1])) / (del_teposmag / hres);
-                    trailvorpos[2] = lastpart[2] + jsta * (tepos[2] - (lastpart[2])) / (del_teposmag / hres);
-                } else {//in case lfnline is stationary in inertial frame
-                    //THIS CASE WILL PROBABLY NEVER HAPPEN NOW WITH THE LASTPART IMPLEMENTATION
-                    trailvorpos[0] = teposprev[0];
-                    trailvorpos[1] = teposprev[1];
-                    trailvorpos[2] = teposprev[2];
-                    printf("this is being entered!!!");
+            int num_part = (int) (del_teposmag / hres);  //number of particles behind each ista
+            if (trailvor){
+                for (int jsta = int(dontaddTEpart); jsta <= num_part; ++jsta) {
+                    //evaluate trailing vortex parameters corresponding to a airsta
+                    if (del_teposmag != 0.0) {//in case lfnline is moving in inertial frame
+                        trailvorpos[0] = lastpart[0] + jsta * (tepos[0] - (lastpart[0])) / (del_teposmag / hres);
+                        trailvorpos[1] = lastpart[1] + jsta * (tepos[1] - (lastpart[1])) / (del_teposmag / hres);
+                        trailvorpos[2] = lastpart[2] + jsta * (tepos[2] - (lastpart[2])) / (del_teposmag / hres);
+                    } else {//only stepnum=0 in case lfnline is stationary in inertial frame
+                        //particles added at TE; thereafter del_teposmag !=0.0, particles added between last section particle and TE
+                        trailvorpos[0] = lastpart[0];
+                        trailvorpos[1] = lastpart[1];
+                        trailvorpos[2] = lastpart[2];
+                        printf("this is being entered!!!");
+                    }
+                    for (int k = 0; k < 3; ++k) {
+                        gsl_matrix_set(_position, _npidx, k, trailvorpos[k]);
+                        gsl_matrix_set(_vorticity, _npidx, k, localflowdir[k] * alphai);
+                        gsl_matrix_set(_vorticityfield, _npidx, k, 0.0); //later
+                    }
+                    gsl_vector_set(_radius, _npidx, sigma);
+                    gsl_vector_set(_volume, _npidx, voli);
+                    gsl_vector_set(_birthstrength, _npidx, fabs(alphai));
+                    gsl_vector_set(_active, _npidx, stepnum);//unsused for now
+                    gsl_vector_set(_lastsectpartnpidx, sectidx, _npidx);
+                    if (_npidx == 0)
+                        printf("First particle created at : %8.3e, %8.3e, %8.3e \n", trailvorpos[0], trailvorpos[1],
+                               trailvorpos[2]);
+                    _npidx++;
+                    if (_npidx == MAXNUMPARTICLES) {
+                        _npidx = 0;
+                        _numParticles = MAXNUMPARTICLES;
+                        _maxmem = true;
+                    }
+                    if (!_maxmem)
+                        _numParticles = _npidx;
                 }
-                for (int k = 0; k < 3; ++k) {
-                    gsl_matrix_set(_position, _npidx, k, trailvorpos[k]);
-                    gsl_matrix_set(_vorticity, _npidx, k, localflowdir[k] * alphai);
-                    gsl_matrix_set(_vorticityfield, _npidx, k, 0.0); //later
-                }
-                gsl_vector_set(_radius, _npidx, sigma);
-                gsl_vector_set(_volume, _npidx, voli);
-                gsl_vector_set(_birthstrength, _npidx, fabs(alphai));
-                gsl_vector_set(_active, _npidx, stepnum);//unsused for now
-                gsl_vector_set(_lastsectpartnpidx, sectidx, _npidx);
-                if (_npidx == 0)
-                    printf("First particle created at : %8.3e, %8.3e, %8.3e \n", trailvorpos[0], trailvorpos[1],trailvorpos[2]);
-                _npidx++;
-                if(_npidx==MAXNUMPARTICLES){
-                    _npidx = 0;
-                    _numParticles = MAXNUMPARTICLES;
-                    _maxmem = true;
-                }
-                if(!_maxmem)
-                    _numParticles = _npidx;
             }
-            if (SHEDVOR) {
+            if (shedvor) {
                 //evaluate shed vortex parameters corresponding to a airsta
                 double shedvorpos[3];
                 double shedvordir[3];
@@ -401,15 +411,41 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
                 double shedvordirmag;
 
                 if (ista != spanres) {//shed vortex only between airsta
-                    double tepos_nxt[3];
-                    tepos_nxt[0] = gsl_spline_eval(TEposx_spline, (ista+1) * (1. / spanres), accel_ptr);
-                    tepos_nxt[1] = gsl_spline_eval(TEposy_spline, (ista+1) * (1. / spanres), accel_ptr);
-                    tepos_nxt[2] = gsl_spline_eval(TEposz_spline, (ista+1) * (1. / spanres), accel_ptr);
-                    double teposprev_nxt[3];
-                    teposprev_nxt[0] = gsl_spline_eval(TEposxprev_spline, (ista+1) * (1. / spanres), accel_ptr);
-                    teposprev_nxt[1] = gsl_spline_eval(TEposyprev_spline, (ista+1) * (1. / spanres), accel_ptr);
-                    teposprev_nxt[2] = gsl_spline_eval(TEposzprev_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    sectidx = ilfn*(2*spanres+1)+2*ista+1;
+                    double teposnxt[3];
+                    teposnxt[0] = gsl_spline_eval(TEposx_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    teposnxt[1] = gsl_spline_eval(TEposy_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    teposnxt[2] = gsl_spline_eval(TEposz_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    double teposprevnxt[3];
+                    teposprevnxt[0] = gsl_spline_eval(TEposxprev_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    teposprevnxt[1] = gsl_spline_eval(TEposyprev_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    teposprevnxt[2] = gsl_spline_eval(TEposzprev_spline, (ista+1) * (1. / spanres), accel_ptr);
+                    double tepos_shed[3],teposprev_shed[3];
+                    for (int k = 0; k < 3; ++k) {
+                        tepos_shed[k] = 0.5*(tepos[k] + teposnxt[k]);
+                        teposprev_shed[k] = 0.5*(teposprev[k] + teposprevnxt[k]);
+                    }
 
+                    double lastpart_shed[3]; //coordinates of last particle to emanate between ista and ista + 1
+                    if (stepnum==0){
+                        gsl_matrix_set(_initTEpos, sectidx, 0,teposprev_shed[0]);
+                        gsl_matrix_set(_initTEpos, sectidx, 1,teposprev_shed[1]);
+                        gsl_matrix_set(_initTEpos, sectidx, 2,teposprev_shed[2]);
+                        dontaddTEpart = false;
+                    }
+                    if (gsl_vector_get(_lastsectpartnpidx, sectidx)!=DBL_MAX) {
+                        lastpart_shed[0] = gsl_matrix_get(_position, gsl_vector_get(_lastsectpartnpidx, sectidx), 0);
+                        lastpart_shed[1] = gsl_matrix_get(_position, gsl_vector_get(_lastsectpartnpidx, sectidx), 1);
+                        lastpart_shed[2] = gsl_matrix_get(_position, gsl_vector_get(_lastsectpartnpidx, sectidx), 2);
+                    }
+                    else{
+                        lastpart_shed[0] = gsl_matrix_get(_initTEpos, sectidx, 0);
+                        lastpart_shed[1] = gsl_matrix_get(_initTEpos, sectidx, 1);
+                        lastpart_shed[2] = gsl_matrix_get(_initTEpos, sectidx, 2);
+                    }
+                    del_teposmag = sqrt(  pow(tepos_shed[0]-(lastpart_shed[0]),2)
+                                        + pow(tepos_shed[1]-(lastpart_shed[1]),2)
+                                        + pow(tepos_shed[2]-(lastpart_shed[2]),2));
                     shedvordir[0] =   gsl_spline_eval(astposx_spline, ista * (1. / spanres), accel_ptr)
                                     - gsl_spline_eval(astposx_spline, (ista+1) * (1. / spanres), accel_ptr);
                     shedvordir[1] =   gsl_spline_eval(astposy_spline, ista * (1. / spanres), accel_ptr)
@@ -427,22 +463,25 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
                                  - 0.5*(   gsl_spline_eval(circprev_spline, ista *     (1. / spanres),     accel_ptr)
                                          + gsl_spline_eval(circprev_spline, (ista+1) * (1. / spanres),     accel_ptr));
                     //placing shed vortex particle between two trailing vortex particles
-                    for(int ksta = 0; ksta<=(int)(del_teposmag/hres); ++ksta ) {
+                    for(int ksta = int(dontaddTEpart); ksta<=(int)(del_teposmag/hres); ++ksta ) {
                         if (del_teposmag != 0.0) {//in case lfnline is moving in inertial frame
-                            shedvorpos[0] = 0.5*(   tepos[0]     + ksta * ((teposprev[0]    + deltat*teconv[0]) - tepos[0]    ) / (del_teposmag / hres)
-                                                  + tepos_nxt[0] + ksta * ((teposprev_nxt[0]+ deltat*teconv[0]) - tepos_nxt[0]) / (del_teposmag / hres));
-                            shedvorpos[1] = 0.5*(   tepos[1]     + ksta * ((teposprev[1]    + deltat*teconv[1]) - tepos[1]    ) / (del_teposmag / hres)
-                                                    + tepos_nxt[1] + ksta * ((teposprev_nxt[1]+ deltat*teconv[1]) - tepos_nxt[1]) / (del_teposmag / hres));
-                            shedvorpos[2] = 0.5*(   tepos[2]     + ksta * ((teposprev[2]    + deltat*teconv[2]) - tepos[2]    ) / (del_teposmag / hres)
-                                                    + tepos_nxt[2] + ksta * ((teposprev_nxt[2]+ deltat*teconv[2]) - tepos_nxt[2]) / (del_teposmag / hres));
+                            shedvorpos[0] = lastpart_shed[0] + ksta * (tepos_shed[0] - lastpart_shed[0])/(del_teposmag/hres);
+                            shedvorpos[1] = lastpart_shed[1] + ksta * (tepos_shed[1] - lastpart_shed[1])/(del_teposmag/hres);
+                            shedvorpos[2] = lastpart_shed[2] + ksta * (tepos_shed[2] - lastpart_shed[2])/(del_teposmag/hres);
 
-                        } else {//in case lfnline is stationary in inertial frame
-                            shedvorpos[0] = 0.5*(  gsl_spline_eval(TEposx_spline, ista * (1. / spanres), accel_ptr)
+                        } else {//only stepnum=0 in case lfnline is stationary in inertial frame
+                            //particles added at TE; thereafter del_teposmag !=0.0, particles added between last section particle and TE
+/*                            shedvorpos[0] = 0.5*(  gsl_spline_eval(TEposx_spline, ista * (1. / spanres), accel_ptr)
                                                    + gsl_spline_eval(TEposx_spline, (ista+1) * (1. / spanres), accel_ptr));
                             shedvorpos[1] = 0.5*(  gsl_spline_eval(TEposy_spline, ista * (1. / spanres), accel_ptr)
                                                    + gsl_spline_eval(TEposy_spline, (ista+1) * (1. / spanres), accel_ptr));
                             shedvorpos[2] = 0.5*(  gsl_spline_eval(TEposz_spline, ista * (1. / spanres), accel_ptr)
                                                    + gsl_spline_eval(TEposz_spline, (ista+1) * (1. / spanres), accel_ptr));
+*/
+                            shedvorpos[0] = lastpart_shed[0];
+                            shedvorpos[1] = lastpart_shed[1];
+                            shedvorpos[2] = lastpart_shed[2];
+
                         }
                         double alphai_shed = shedvormag*hres;
                         for (int k = 0; k < 3; ++k) {
@@ -454,6 +493,7 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
                         gsl_vector_set(_volume, _npidx, voli);
                         gsl_vector_set(_birthstrength, _npidx, fabs(alphai_shed));
                         gsl_vector_set(_active, _npidx, stepnum);//unsused for now
+                        gsl_vector_set(_lastsectpartnpidx, sectidx, _npidx);
 
                         _npidx++;
                         if(_npidx==MAXNUMPARTICLES){
@@ -492,9 +532,9 @@ void pawan::__wake::addParticles(PawanRecvData pawanrecvdata,size_t &stepnum){
 pawan::__wake::__wake(PawanRecvData pawanrecvdata){
 
     initialise_memory();   //large enough memory allocation
-    _lastsectpartnpidx = gsl_vector_calloc(PAWAN_MAXLFNLINES*100);   //expecting a maximum spanres of 99
+    _lastsectpartnpidx = gsl_vector_calloc(PAWAN_MAXLFNLINES*400);   //expecting a maximum spanres of 399
     gsl_vector_set_all(_lastsectpartnpidx,DBL_MAX);
-    _initTEpos = gsl_matrix_calloc(PAWAN_MAXLFNLINES*100,3);
+    _initTEpos = gsl_matrix_calloc(PAWAN_MAXLFNLINES*400,3);
     size_t stepnum=0;
     addParticles(pawanrecvdata, stepnum);
 }
